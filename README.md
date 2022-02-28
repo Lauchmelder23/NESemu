@@ -2,7 +2,7 @@
 
 NESemu is my fourth attempt at writing a working Nintendo NES Emulator.
 
-This time I'm also writing a Debugger that will hopefully help me finish the project this time.
+This time I'm also writing a Debugger that will hopefully help me finish the project.
 
 ![View of the Debugger](imgs/debug_example.png)
 
