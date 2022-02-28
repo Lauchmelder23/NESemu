@@ -20,9 +20,6 @@ target_include_directories(nesemu PRIVATE
 	gfx
 	debugger
 	${IMGUI_INCLUDE}
-	${GLFW3_INCLUDE_DIRS}
-	spdlog
-	glad
 )
 
 target_sources(nesemu PRIVATE
@@ -31,7 +28,7 @@ target_sources(nesemu PRIVATE
 
 target_link_libraries(nesemu
 	spdlog
-	${GLFW3_LIBRARIES}
+	glfw
 	glad
 )
 
