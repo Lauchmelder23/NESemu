@@ -28,17 +28,17 @@ void Disassembler::OnRender()
 	std::string disassembly;
 
 	ImGui::PushStyleColor(ImGuiCol_Text, ImVec4{ 0.8f, 0.8f, 0.8f, 1.0f });
-	if (cpu->pastPCs.size() < 50)
+	if (cpu->pastInstructions.size() < 50)
 	{
-		for (int i = 0; i < 50 - cpu->pastPCs.size(); i++)
+		for (int i = 0; i < 50 - cpu->pastInstructions.size(); i++)
 		{
 			ImGui::Text("-");
 		}
 	}
 
-	for (Word pc : cpu->pastPCs)
+	for (auto pair : cpu->pastInstructions)
 	{
-		Disassemble(disassembly, pc);
+		Disassemble(disassembly, pair.first, pair.second);
 		ImGui::Text("- %s", disassembly.c_str());
 	}
 	ImGui::PopStyleColor();
@@ -70,18 +70,24 @@ void Disassembler::OnRender()
 
 void Disassembler::Disassemble(std::string& target, uint16_t& pc)
 {
-	std::stringstream ss;
-	ss <<  FORMAT << pc << ": ";
 	Instruction* currentInstr = &cpu->InstructionTable[cpu->Read(pc)];
+	Disassemble(target, pc, currentInstr);
+	pc += currentInstr->Size;
+}
 
-	for (int i = 0; i < currentInstr->Size; i++)
+void Disassembler::Disassemble(std::string& target, uint16_t pc, const Instruction* instr)
+{
+	std::stringstream ss;
+	ss << FORMAT << pc << ": ";
+
+	for (int i = 0; i < instr->Size; i++)
 	{
 		ss << FORMAT << std::setw(2) << (Word)cpu->Read(pc + i) << " ";
 	}
-	ss << std::string(15 - ss.str().size(), ' ') << currentInstr->Mnemonic << " ";
+	ss << std::string(15 - ss.str().size(), ' ') << instr->Mnemonic << " ";
 
 	Address absoluteAddress;
-	switch (currentInstr->AddrType)
+	switch (instr->AddrType)
 	{
 	case Addressing::ACC:
 		ss << "A";
@@ -118,7 +124,7 @@ void Disassembler::Disassemble(std::string& target, uint16_t& pc)
 		ss << "#$" << FORMAT << std::setw(2) << value;
 	} break;
 
-	case Addressing::IMP: 
+	case Addressing::IMP:
 		break;
 
 	case Addressing::IND:
@@ -172,6 +178,5 @@ void Disassembler::Disassemble(std::string& target, uint16_t& pc)
 	} break;
 	}
 
-	pc += currentInstr->Size;
 	target = ss.str();
 }

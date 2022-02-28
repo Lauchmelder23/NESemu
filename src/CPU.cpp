@@ -56,9 +56,9 @@ uint8_t CPU::Tick()
 	Byte opcode = Read(pc.Raw++);
 	currentInstruction = &(InstructionTable[opcode]);
 
-	pastPCs.push_back(currentInstruction);
-	if (pastPCs.size() > 50)
-		pastPCs.pop_front();
+	pastInstructions.push_back(std::make_pair(pc.Raw - 1, currentInstruction));
+	if (pastInstructions.size() > 50)
+		pastInstructions.pop_front();
 
 	if (currentInstruction->Operation == nullptr || currentInstruction->Mode == nullptr)
 	{

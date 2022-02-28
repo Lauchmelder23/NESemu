@@ -240,7 +240,7 @@ private:	// CPU internals
 	uint8_t remainingCycles = 0;
 	uint8_t additionalCycles = 0;	//< E.g. when a page boundary was crossed
 	uint64_t totalCycles = 0;
-	std::deque<Instruction*> pastPCs;	//< For debugging, saves the past 50 instructions
+	std::deque<std::pair<Word, Instruction*>> pastInstructions;	//< For debugging, saves the past 50 instructions
 	bool halted = false;
 
 #ifndef NDEBUG
