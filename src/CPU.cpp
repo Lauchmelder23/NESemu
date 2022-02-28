@@ -44,6 +44,7 @@ uint8_t CPU::Tick()
 	if (halted)
 		return 0;
 
+	// If there are still cycles left from last instruction, dont do anything
 	totalCycles++;
 	if (remainingCycles)
 	{
@@ -53,13 +54,16 @@ uint8_t CPU::Tick()
 	RESET_DEBUG_STRING();
 	APPEND_DEBUG_STRING(std::setw(4) << pc.Raw << "  ");
 
+	// Get current opcode and instruction
 	Byte opcode = Read(pc.Raw++);
 	currentInstruction = &(InstructionTable[opcode]);
 
+	// Add this instruction to the past instruction list
 	pastInstructions.push_back(std::make_pair(pc.Raw - 1, currentInstruction));
 	if (pastInstructions.size() > 50)
 		pastInstructions.pop_front();
 
+	// If the instruction is not set in the lookup table, abort
 	if (currentInstruction->Operation == nullptr || currentInstruction->Mode == nullptr)
 	{
 		LOG_DEBUG_ERROR("Unknown instruction {0:02X} at ${1:04X}", opcode, pc.Raw);
@@ -68,6 +72,7 @@ uint8_t CPU::Tick()
 
 	APPEND_DEBUG_STRING((Word)opcode << " ");
 
+	// Invoke addressing mode and instruction
 	accumulatorAddressing = false;
 	currentInstruction->Mode();
 	currentInstruction->Operation();
@@ -83,6 +88,7 @@ uint8_t CPU::Tick()
 
 	LOG();
 
+	// Set remaining cycles
 	remainingCycles = currentInstruction->Cycles + additionalCycles;
 	additionalCycles = 0;
 	remainingCycles--;
