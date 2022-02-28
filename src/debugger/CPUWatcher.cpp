@@ -19,35 +19,15 @@ void CPUWatcher::OnRender()
 		return;
 	}
 
-	ImGui::Text("Registers");
-	if (ImGui::BeginTable("Registers", 6))
+	if (ImGui::CollapsingHeader("Registers", ImGuiTreeNodeFlags_DefaultOpen))
 	{
-		ImGui::TableNextColumn();
-		ImGui::Text("A");	
-		ImGui::TableNextColumn();
-		ImGui::Text("X");	
-		ImGui::TableNextColumn();
-		ImGui::Text("Y");	
-		ImGui::TableNextColumn();
-		ImGui::Text("PC");	
-		ImGui::TableNextColumn();
-		ImGui::Text("SP");
-		ImGui::TableNextColumn();
-		ImGui::Text("P");
-		ImGui::TableNextColumn();
-		ImGui::Text("%02X", cpu->acc);	
-		ImGui::TableNextColumn();
-		ImGui::Text("%02X", cpu->idx);	
-		ImGui::TableNextColumn();
-		ImGui::Text("%02X", cpu->idy);
-		ImGui::TableNextColumn();
-		ImGui::Text("%04X", cpu->pc);	
-		ImGui::TableNextColumn();
-		ImGui::Text("%02X", cpu->sp);
-		ImGui::TableNextColumn();
-		ImGui::Text("%02X", cpu->status.Raw);
-	
-		ImGui::EndTable();
+
+		ImGui::InputScalar("A", ImGuiDataType_U8, &cpu->acc, (const void*)0, (const void*)0, "%02X", ImGuiInputTextFlags_CharsHexadecimal);
+		ImGui::InputScalar("X", ImGuiDataType_U8, &cpu->idx, (const void*)0, (const void*)0, "%02X", ImGuiInputTextFlags_CharsHexadecimal);
+		ImGui::InputScalar("Y", ImGuiDataType_U8, &cpu->idy, (const void*)0, (const void*)0, "%02X", ImGuiInputTextFlags_CharsHexadecimal);
+		ImGui::InputScalar("PC", ImGuiDataType_U16, &cpu->pc, (const void*)0, (const void*)0, "%04X", ImGuiInputTextFlags_CharsHexadecimal);
+		ImGui::InputScalar("SP", ImGuiDataType_U8, &cpu->sp, (const void*)0, (const void*)0, "%04X", ImGuiInputTextFlags_CharsHexadecimal | ImGuiInputTextFlags_ReadOnly);
+		ImGui::InputScalar("P", ImGuiDataType_U8, &cpu->status.Raw, (const void*)0, (const void*)0, "%04X", ImGuiInputTextFlags_CharsHexadecimal | ImGuiInputTextFlags_ReadOnly);
 	}
 
 	ImGui::Separator();
