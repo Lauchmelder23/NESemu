@@ -53,13 +53,12 @@ uint8_t CPU::Tick()
 	RESET_DEBUG_STRING();
 	APPEND_DEBUG_STRING(std::setw(4) << pc.Raw << "  ");
 
-	// Implement instructions
-	pastPCs.push_back(pc.Raw);
-	if (pastPCs.size() > 50)
-		pastPCs.pop_front();
-
 	Byte opcode = Read(pc.Raw++);
 	currentInstruction = &(InstructionTable[opcode]);
+
+	pastPCs.push_back(currentInstruction);
+	if (pastPCs.size() > 50)
+		pastPCs.pop_front();
 
 	if (currentInstruction->Operation == nullptr || currentInstruction->Mode == nullptr)
 	{
