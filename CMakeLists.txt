@@ -9,7 +9,7 @@ find_package(GLFW3)
 if(NOT ${GLFW3_FOUND})
 	add_subdirectory("vendor/glfw")
 
-	set(GLFW3_INCLUDE_DIRS "")
+	set(GLFW3_INCLUDE_DIRS glfw)
 	set(GLFW3_LIBRARIES glfw)
 endif()
 add_subdirectory("vendor/glad")

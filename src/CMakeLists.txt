@@ -21,6 +21,8 @@ target_include_directories(nesemu PRIVATE
 	debugger
 	${IMGUI_INCLUDE}
 	${GLFW3_INCLUDE_DIRS}
+	spdlog
+	glad
 )
 
 target_sources(nesemu PRIVATE
