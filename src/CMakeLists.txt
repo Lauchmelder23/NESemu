@@ -30,6 +30,7 @@ target_link_libraries(nesemu
 	spdlog
 	glfw
 	glad
+	${CMAKE_DL_LIBS}
 )
 
 add_custom_command(TARGET nesemu POST_BUILD

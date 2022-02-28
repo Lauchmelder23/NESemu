@@ -6,8 +6,8 @@
 #include "Log.hpp"
 
 #define BIND(x) (std::bind(&CPU::x, this))
-#define NEW_INSTRUCTION(op, addr, size, cyc) { BIND(op), BIND(addr), Addressing::addr, size, cyc, " " #op }
-#define NEW_ILLGL_INSTR(op, addr, size, cyc) { BIND(op), BIND(addr), Addressing::addr, size, cyc, "*" #op }
+#define NEW_INSTRUCTION(op, addr, size, cyc) Instruction{ BIND(op), BIND(addr), Addressing::addr, size, cyc, " " #op }
+#define NEW_ILLGL_INSTR(op, addr, size, cyc) Instruction{ BIND(op), BIND(addr), Addressing::addr, size, cyc, "*" #op }
 
 #define CHECK_NEGATIVE(x)	status.Flag.Negative = (((x) & 0x80) == 0x80)
 #define CHECK_ZERO(x)		status.Flag.Zero = ((x) == 0x00)
@@ -64,7 +64,7 @@ uint8_t CPU::Tick()
 		pastInstructions.pop_front();
 
 	// If the instruction is not set in the lookup table, abort
-	if (currentInstruction->Operation == nullptr || currentInstruction->Mode == nullptr)
+	if (currentInstruction->Opcode == nullptr || currentInstruction->Mode == nullptr)
 	{
 		LOG_DEBUG_ERROR("Unknown instruction {0:02X} at ${1:04X}", opcode, pc.Raw);
 		throw std::runtime_error("Encountered unknown opcode");
@@ -75,7 +75,7 @@ uint8_t CPU::Tick()
 	// Invoke addressing mode and instruction
 	accumulatorAddressing = false;
 	currentInstruction->Mode();
-	currentInstruction->Operation();
+	currentInstruction->Opcode();
 
 	APPEND_DEBUG_STRING(std::string(50 - debugString.str().length(), ' '));
 

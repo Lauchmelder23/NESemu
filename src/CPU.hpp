@@ -53,7 +53,7 @@ union StatusFlag
  */
 struct Instruction
 {
-	Operation Operation = nullptr;
+	Operation Opcode = nullptr;
 	AddressingMode Mode = nullptr;		
 	Addressing AddrType = Addressing::IMP;	
 	uint8_t Size = 0;
