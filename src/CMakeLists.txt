@@ -9,13 +9,18 @@ add_executable(nesemu
 	"PPU.cpp" 
 	"gfx/Window.cpp"
 	"debugger/CPUWatcher.cpp"
- "debugger/Debugger.cpp" "debugger/PPUWatcher.cpp" "debugger/Disassembler.cpp" "debugger/MemoryViewer.cpp" "debugger/NametableViewer.cpp")
+	"debugger/Debugger.cpp" 
+	"debugger/PPUWatcher.cpp" 
+	"debugger/Disassembler.cpp" 
+	"debugger/MemoryViewer.cpp" 
+	"debugger/NametableViewer.cpp")
 
 target_include_directories(nesemu PRIVATE
 	mappers
 	gfx
 	debugger
 	${IMGUI_INCLUDE}
+	${GLFW3_INCLUDE_DIRS}
 )
 
 target_sources(nesemu PRIVATE
@@ -24,7 +29,7 @@ target_sources(nesemu PRIVATE
 
 target_link_libraries(nesemu
 	spdlog
-	glfw
+	${GLFW3_LIBRARIES}
 	glad
 )
 
