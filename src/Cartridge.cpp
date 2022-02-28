@@ -8,7 +8,7 @@
 #include "mappers/Mapper000.hpp"
 
 Cartridge::Cartridge(Bus* bus) :
-	bus(bus)
+	bus(bus), mapper(nullptr)
 {
 }
 
@@ -17,36 +17,19 @@ Cartridge::~Cartridge()
 	delete mapper;
 }
 
-Byte Cartridge::ReadCPU(Word addr)
-{
-	return mapper->ReadCPU(addr);
-}
-
-Byte Cartridge::ReadPPU(Word addr)
-{
-	return mapper->ReadPPU(addr);
-}
-
-void Cartridge::WriteCPU(Word addr, Byte val)
-{
-	mapper->WriteCPU(addr, val);
-}
-
-void Cartridge::WritePPU(Word addr, Byte val)
-{
-	mapper->WritePPU(addr, val);
-}
-
 void Cartridge::Load(std::string path)
 {
+	// Try to load file from disk
 	std::ifstream file(path, std::ios::binary);
 	if (!file)
 		throw std::runtime_error("Failed to open file " + path);
 
+	// Read header into (temporary) structure
 	LOG_CORE_INFO("Extracting header");
 	Header header;
 	file.read((char*)&header, sizeof(Header));
 
+	// Figure out which mapper the cartridge uses and create a mapper object
 	uint8_t mapperNumber = (header.MapperHi & 0xF0) | (header.MapperLo >> 4);
 	LOG_CORE_INFO("Cartridge requires Mapper {0:d}", mapperNumber);
 	switch (mapperNumber)
