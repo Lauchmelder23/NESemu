@@ -35,8 +35,10 @@ void PPU::Reset()
 
 void PPU::Tick()
 {
+	// On this cycle the VBlankStarted bit is set in the ppustatus
 	if (y == 241 && x == 1)
 	{
+		// Set flag and send NMI if necessary
 		ppustatus.Flag.VBlankStarted = 1;
 		if (ppuctrl.Flag.VBlankNMI)
 			bus->NMI();
@@ -44,9 +46,11 @@ void PPU::Tick()
 		isFrameDone = true;
 	}
 
+	// This cycle resets the VBlankStarted flag
 	if (y == 261 && x == 1)
 		ppustatus.Flag.VBlankStarted = 0;
 
+	// Advance pixel counters
 	x++;
 	if (x > 340)
 	{
@@ -59,34 +63,33 @@ void PPU::Tick()
 
 Byte PPU::ReadRegister(Byte id)
 {
-	Byte returnVal = 0x00;
-
+	// Reading from a register fills the latch with the contents of the register
+	// Write-only regs don't fill the latch
+	// But in any case, the latch contents are returned
 	switch (id)
 	{
 	case 0:
-		returnVal = ppuctrl.Raw;
+		latch = ppuctrl.Raw;
 		break;
 
 	case 1:
-		returnVal = ppumask.Raw;
+		latch = ppumask.Raw;
 		break;
 
 	case 2:
-		returnVal =  ppustatus.Raw;
+		latch =  ppustatus.Raw;
 		ppustatus.Flag.VBlankStarted = 0;
 		addressLatch = 0;
 		break;
 
 	case 5:
-		returnVal = 0x00;
 		break;
 
 	case 6:
-		returnVal = 0x00;
 		break;
 
 	case 7:
-		returnVal = bus->ReadPPU(ppuaddr.Raw);
+		latch = bus->ReadPPU(ppuaddr.Raw);
 		ppuaddr.Raw += (ppuctrl.Flag.VRAMAddrIncrement ? 32 : 1);
 		break;
 	
@@ -95,7 +98,7 @@ Byte PPU::ReadRegister(Byte id)
 		break;
 	}
 
-	return returnVal;
+	return latch;
 }
 
 void PPU::WriteRegister(Byte id, Byte val)
@@ -114,13 +117,16 @@ void PPU::WriteRegister(Byte id, Byte val)
 		ppustatus.Raw = val;
 		break;
 
+		// PPUADDR and PPUSCROLL both take 2 accesses to fully set
+		// When writing to them the address latch is switched. The latch
+		// determines whether the hi or lo byte should be written next
 	case 5:
 		if (addressLatch == 0)
 			ppuscroll.x = val;
 		else
 			ppuscroll.y = val;
 
-		addressLatch = 1 - addressLatch;
+		addressLatch = !addressLatch;
 		break;
 
 	case 6:
@@ -129,7 +135,7 @@ void PPU::WriteRegister(Byte id, Byte val)
 		else
 			ppuaddr.Bytes.lo = val;
 
-		addressLatch = 1 - addressLatch;
+		addressLatch = !addressLatch;
 		break;
 
 	case 7:

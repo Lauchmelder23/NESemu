@@ -4,6 +4,9 @@
 
 class Bus;
 
+/**
+ * @brief The PPU of the NES.
+ */
 class PPU
 {
 	friend class PPUWatcher;
@@ -11,18 +14,49 @@ class PPU
 public:
 	PPU(Bus* bus);
 
+	/**
+	 * @brief Powerup PPU.
+	 * Internal state corresponds to powerup state
+	 */
 	void Powerup();
+
+	/**
+	 * @brief Powerup PPU.
+	 * Internal state corresponds to reset state
+	 */
 	void Reset();
 
+	/**
+	 * @brief Tick PPU forward once.
+	 */
 	void Tick();
 
+	/**
+	 * @brief Read from memory mapped PPU regs.
+	 */
 	Byte ReadRegister(Byte id);
+
+	/**
+	 * @brief Write to memory mapped PPU regs.
+	 */
 	void WriteRegister(Byte id, Byte val);
 
+	/**
+	 * @brief Check whether the PPU finished rendering a frame.
+	 * Returns true if the VBlankStart cycle was hit previously. The function resets
+	 * the boolearn when it is called
+	 */
 	inline bool IsFrameDone() { bool returnVal = isFrameDone; isFrameDone = false; return returnVal; }
 
 private:
+	/**
+	 * @brief Wraps Bus::ReadPPU.
+	 */
 	Byte Read(Word addr);
+	
+	/**
+	 * @brief Wraps Bus::WritePPU.
+	 */
 	void Write(Word addr, Byte val);
 
 private: // Registers
@@ -81,8 +115,10 @@ private: // Registers
 
 	Address ppuaddr;
 
+	// Current x, y position the PPU operates on
 	uint16_t x, y;
-	Byte addressLatch = 0;
+	Byte latch = 0;
+	bool addressLatch = false;
 
 private:
 	bool isFrameDone = false;
