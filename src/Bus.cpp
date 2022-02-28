@@ -93,6 +93,8 @@ Byte Bus::ReadCPU(Word addr)
 	{
 		return cartridge.ReadCPU(addr);
 	}
+
+	return 0x00;
 }
 
 Byte Bus::ReadPPU(Word addr)

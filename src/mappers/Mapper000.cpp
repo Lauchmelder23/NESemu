@@ -21,6 +21,8 @@ Byte Mapper000::ReadCPU(Word addr)
 	{
 		return PRG_ROM[addr & 0x03FFF];
 	}
+
+	return 0x00;
 }
 
 Byte Mapper000::ReadPPU(Word addr)
@@ -29,6 +31,8 @@ Byte Mapper000::ReadPPU(Word addr)
 	{
 		return CHR_ROM[addr];
 	}
+
+	return 0x00;
 }
 
 void Mapper000::WriteCPU(Word addr, Byte val)
