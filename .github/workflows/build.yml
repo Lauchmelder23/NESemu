@@ -20,8 +20,8 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
-    - name: Install GLFW Deps
-      uses: RpxdYTX/install-glfw-deps@v2
+    - name: Install GLFW
+      run: sudo apt install libglfw3-dev
 
     - name: Initialize Submodules
       uses: snickerbockers/submodules-init@v4
