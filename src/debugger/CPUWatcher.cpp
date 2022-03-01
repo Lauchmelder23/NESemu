@@ -5,8 +5,8 @@
 #include <imgui/imgui.h>
 #include "../CPU.hpp"
 
-CPUWatcher::CPUWatcher(CPU* cpu) :
-	DebugWindow("CPU Watch"), cpu(cpu)
+CPUWatcher::CPUWatcher(Debugger* debugger, CPU* cpu) :
+	DebugWindow("CPU Watch", debugger), cpu(cpu)
 {
 }
 
@@ -26,8 +26,8 @@ void CPUWatcher::OnRender()
 		ImGui::InputScalar("X", ImGuiDataType_U8, &cpu->idx, (const void*)0, (const void*)0, "%02X", ImGuiInputTextFlags_CharsHexadecimal);
 		ImGui::InputScalar("Y", ImGuiDataType_U8, &cpu->idy, (const void*)0, (const void*)0, "%02X", ImGuiInputTextFlags_CharsHexadecimal);
 		ImGui::InputScalar("PC", ImGuiDataType_U16, &cpu->pc, (const void*)0, (const void*)0, "%04X", ImGuiInputTextFlags_CharsHexadecimal);
-		ImGui::InputScalar("SP", ImGuiDataType_U8, &cpu->sp, (const void*)0, (const void*)0, "%04X", ImGuiInputTextFlags_CharsHexadecimal | ImGuiInputTextFlags_ReadOnly);
-		ImGui::InputScalar("P", ImGuiDataType_U8, &cpu->status.Raw, (const void*)0, (const void*)0, "%04X", ImGuiInputTextFlags_CharsHexadecimal | ImGuiInputTextFlags_ReadOnly);
+		ImGui::InputScalar("SP", ImGuiDataType_U8, &cpu->sp, (const void*)0, (const void*)0, "%02X", ImGuiInputTextFlags_CharsHexadecimal | ImGuiInputTextFlags_ReadOnly);
+		ImGui::InputScalar("P", ImGuiDataType_U8, &cpu->status.Raw, (const void*)0, (const void*)0, "%02X", ImGuiInputTextFlags_CharsHexadecimal | ImGuiInputTextFlags_ReadOnly);
 	}
 
 	ImGui::Separator();

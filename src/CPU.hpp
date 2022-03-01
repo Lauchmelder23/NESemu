@@ -58,7 +58,7 @@ struct Instruction
 	Addressing AddrType = Addressing::IMP;	
 	uint8_t Size = 0;
 	uint8_t Cycles = 0;
-	char Mnemonic[5] = " XXX";
+	char Mnemonic[5] = " ???";
 };
 
 /**
@@ -134,6 +134,7 @@ private:
 	 */
 	void Write(Word addr, Byte val);
 
+	void FetchValue();
 	
 private:	// Stuff regarding addressing modes
 	Address rawAddress;			//< Temporary storage while decoding addresses

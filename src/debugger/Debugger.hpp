@@ -4,6 +4,7 @@
 #include "DebugWindow.hpp"
 
 class Bus;
+class Disassembler;
 
 class Debugger
 {
@@ -11,6 +12,7 @@ public:
 	Debugger(Bus* bus);
 	~Debugger();
 
+	bool Frame();
 	bool Update();
 	void Render();
 
@@ -24,4 +26,5 @@ private:
 	uint16_t resetVector = 0x0000;
 
 	std::vector<DebugWindow*> windows;
+	Disassembler* disassembler;
 };

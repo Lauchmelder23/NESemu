@@ -4,11 +4,12 @@
 #include <imgui/imgui.h>
 #include "../Mapper.hpp"
 #include "../CPU.hpp"
+#include "Debugger.hpp"
 
 #define FORMAT std::setfill('0') << std::setw(4) << std::hex << std::uppercase
 
-Disassembler::Disassembler(CPU* cpu) :
-	DebugWindow("Disassembler"), cpu(cpu)
+Disassembler::Disassembler(Debugger* debugger, CPU* cpu) :
+	DebugWindow("Disassembler", debugger), cpu(cpu)
 {
 	
 }
@@ -19,10 +20,21 @@ void Disassembler::OnRender()
 
 	ImGui::SetNextWindowSize(ImVec2(400, 400), ImGuiCond_FirstUseEver);
 
-	if (!ImGui::Begin(title.c_str(), &isOpen))
+	if (!ImGui::Begin(title.c_str(), &isOpen, ImGuiWindowFlags_MenuBar))
 	{
 		ImGui::End();
 		return;
+	}
+
+	if (ImGui::BeginMenuBar())
+	{
+		if (ImGui::BeginMenu("Tools"))
+		{
+			ImGui::MenuItem("Breakpoints", NULL, &showBreakpoints);
+			ImGui::EndMenu();
+		}
+
+		ImGui::EndMenuBar();
 	}
 
 	std::string disassembly;
@@ -65,7 +77,21 @@ void Disassembler::OnRender()
 	}
 	ImGui::PopStyleColor();
 
+	if (showBreakpoints)
+	{
+		BreakpointWindow();
+	}
+
 	ImGui::End();
+}
+
+bool Disassembler::BreakpointHit()
+{
+	auto bpFound = breakpoints.find(cpu->pc.Raw);
+	if (bpFound != breakpoints.end() && bpFound->active)
+		return true;
+
+	return false;
 }
 
 void Disassembler::Disassemble(std::string& target, uint16_t& pc)
@@ -179,4 +205,33 @@ void Disassembler::Disassemble(std::string& target, uint16_t pc, const Instructi
 	}
 
 	target = ss.str();
+}
+
+void Disassembler::BreakpointWindow()
+{
+	ImGui::SetNextWindowSize(ImVec2(400, 400), ImGuiCond_FirstUseEver);
+	
+	if (!ImGui::Begin("Breakpoints", &showBreakpoints))
+	{
+		ImGui::End();
+		return;
+	}
+
+	ImGui::InputScalar("##", ImGuiDataType_U16, &tempBreakpoint, (const void*)0, (const void*)0, "%04X", ImGuiInputTextFlags_CharsHexadecimal);
+	ImGui::SameLine();
+	if (ImGui::Button("Add Breakpoint"))
+	{
+		breakpoints.insert(Breakpoint(tempBreakpoint));
+	}
+
+	ImGui::Separator();
+
+	char label[6];
+	for (const Breakpoint& breakpoint : breakpoints)
+	{
+		std::sprintf(label, "$%04X", breakpoint.GetAddress());
+		ImGui::Checkbox(label, &breakpoint.active);
+	}
+
+	ImGui::End();
 }

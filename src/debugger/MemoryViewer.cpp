@@ -3,8 +3,8 @@
 #include <imgui/imgui.h>
 #include "../Bus.hpp"
 
-MemoryViewer::MemoryViewer(Bus* bus) :
-	DebugWindow("Memory Viewer"), bus(bus)
+MemoryViewer::MemoryViewer(Debugger* debugger, Bus* bus) :
+	DebugWindow("Memory Viewer", debugger), bus(bus)
 {
 }
 

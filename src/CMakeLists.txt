@@ -13,7 +13,7 @@ add_executable(nesemu
 	"debugger/PPUWatcher.cpp" 
 	"debugger/Disassembler.cpp" 
 	"debugger/MemoryViewer.cpp" 
-	"debugger/NametableViewer.cpp")
+	"debugger/NametableViewer.cpp" )
 
 target_include_directories(nesemu PRIVATE
 	mappers

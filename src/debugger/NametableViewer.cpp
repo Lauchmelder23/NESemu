@@ -1,35 +1,82 @@
 #include "NametableViewer.hpp"
 
+#include <glad/glad.h>
 #include <imgui/imgui.h>
 #include "../Bus.hpp"
 
-NametableViewer::NametableViewer(Bus* bus) :
-	DebugWindow("Nametable Viewer"), bus(bus)
+NametableViewer::NametableViewer(Debugger* debugger, Bus* bus) :
+	DebugWindow("Nametable Viewer", debugger), bus(bus), texture(0)
 {
+	glCreateTextures(GL_TEXTURE_2D, 1, &texture);
+	glTextureStorage2D(texture, 1, GL_R8, 32, 32);
+
+	glTextureParameteri(texture, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTextureParameteri(texture, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+}
+
+NametableViewer::~NametableViewer()
+{
+	glDeleteTextures(1, &texture);
 }
 
 void NametableViewer::OnRender()
 {
 	ImGui::SetNextWindowSize(ImVec2(400, 400), ImGuiCond_FirstUseEver);
-	if (!ImGui::Begin(title.c_str(), &isOpen))
+	if (!ImGui::Begin(title.c_str(), &isOpen, ImGuiWindowFlags_MenuBar))
 	{
 		ImGui::End();
 		return;
 	}
 
-	ImGui::BeginTabBar("Nametables");
-	for (uint8_t index = 0; index < 4; index++)
+	if (ImGui::BeginMenuBar())
 	{
-		char baseAddress[6];
-		std::sprintf(baseAddress, "$2%X00", index * 4);
+		if (ImGui::BeginMenu("Views"))
+		{
+			ImGui::MenuItem("Rendered View", NULL, &renderNametable);
+
+			ImGui::EndMenu();
+		}
+
+		ImGui::EndMenuBar();
+	}
+
+	ImGui::BeginTabBar("Nametables");
+	for (uint8_t index = 0; index < 2; index++)
+	{
+		char baseAddress[12];
+		std::sprintf(baseAddress, "Nametable %c", 'A' + index);
 		if (ImGui::BeginTabItem(baseAddress))
 		{
 			DisplayNametable(index);
+			if (renderNametable)
+			{
+				glTextureSubImage2D(texture, 0, 0, 0, 32, 32, GL_RED, GL_UNSIGNED_BYTE, &bus->VRAM[0x400 * index]);
+			}
+
 			ImGui::EndTabItem();
 		}
 
 	}
 	ImGui::EndTabBar();
+
+	if (renderNametable)
+	{
+		ImGui::SetNextWindowSize(ImVec2(400, 400), ImGuiCond_FirstUseEver);
+		if (!ImGui::Begin("Rendered Nametable", &renderNametable))
+		{
+			ImGui::End();
+			return;
+		}
+
+		
+
+		float smallerSize = std::min(ImGui::GetWindowWidth(), ImGui::GetWindowHeight()) - 20.0f;
+		if (smallerSize < 40.0f)
+			smallerSize = 40.0f;
+
+		ImGui::Image((ImTextureID)texture, ImVec2{smallerSize, smallerSize - 20.0f});
+		ImGui::End();
+	}
 
 	ImGui::End();
 }

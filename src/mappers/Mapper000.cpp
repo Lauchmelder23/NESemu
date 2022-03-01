@@ -4,7 +4,8 @@
 #include <fstream>
 #include "../Cartridge.hpp"
 
-Mapper000::Mapper000(Header& header, std::ifstream& ifs)
+Mapper000::Mapper000(const Header& header, std::ifstream& ifs) :
+	Mapper(header)
 {
 	LOG_CORE_INFO("Allocating PRG ROM");
 	PRG_ROM = std::vector<Byte>(0x4000);

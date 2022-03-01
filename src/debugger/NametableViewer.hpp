@@ -8,7 +8,8 @@ class NametableViewer :
 	public DebugWindow
 {
 public:
-	NametableViewer(Bus* bus);
+	NametableViewer(Debugger* debugger, Bus* bus);
+	~NametableViewer();
 
 	virtual void OnRender() override;
 	
@@ -17,4 +18,6 @@ private:
 
 private:
 	Bus* bus;
+	uint32_t texture;
+	bool renderNametable = false;
 };

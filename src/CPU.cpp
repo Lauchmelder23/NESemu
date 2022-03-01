@@ -12,16 +12,6 @@
 #define CHECK_NEGATIVE(x)	status.Flag.Negative = (((x) & 0x80) == 0x80)
 #define CHECK_ZERO(x)		status.Flag.Zero = ((x) == 0x00)
 
-#if !defined(NDEBUG) && !defined(FORCE_NO_DEBUG_LOG)
-	#define LOG() LOG_DEBUG_TRACE(debugString.str())
-	#define RESET_DEBUG_STRING() debugString.str(std::string())
-	#define APPEND_DEBUG_STRING(x) debugString << std::hex << std::uppercase << std::setfill('0') << std::setw(2) << x
-#else
-	#define LOG() 
-	#define RESET_DEBUG_STRING()
-	#define APPEND_DEBUG_STRING(...)
-#endif
-
 CPU::CPU(Bus* bus) :
 	bus(bus)
 {
@@ -39,6 +29,12 @@ void CPU::Write(Word addr, Byte val)
 	bus->WriteCPU(addr, val);
 }
 
+void CPU::FetchValue()
+{
+	if (currentInstruction->AddrType != Addressing::ACC && currentInstruction->AddrType != Addressing::IMP)
+		fetchedVal = Read(absoluteAddress.Raw);
+}
+
 uint8_t CPU::Tick()
 {
 	if (halted)
@@ -50,9 +46,6 @@ uint8_t CPU::Tick()
 	{
 		return remainingCycles--;
 	}
-
-	RESET_DEBUG_STRING();
-	APPEND_DEBUG_STRING(std::setw(4) << pc.Raw << "  ");
 
 	// Get current opcode and instruction
 	Byte opcode = Read(pc.Raw++);
@@ -70,23 +63,10 @@ uint8_t CPU::Tick()
 		throw std::runtime_error("Encountered unknown opcode");
 	}
 
-	APPEND_DEBUG_STRING((Word)opcode << " ");
-
 	// Invoke addressing mode and instruction
 	accumulatorAddressing = false;
 	currentInstruction->Mode();
 	currentInstruction->Opcode();
-
-	APPEND_DEBUG_STRING(std::string(50 - debugString.str().length(), ' '));
-
-	APPEND_DEBUG_STRING("A:");
-	APPEND_DEBUG_STRING((Word)acc << " X:");
-	APPEND_DEBUG_STRING((Word)idx << " Y:");
-	APPEND_DEBUG_STRING((Word)idy << " P:");
-	APPEND_DEBUG_STRING((Word)status.Raw << " SP:");
-	APPEND_DEBUG_STRING(sp << " CYC:" << std::dec << totalCycles);
-
-	LOG();
 
 	// Set remaining cycles
 	remainingCycles = currentInstruction->Cycles + additionalCycles;
@@ -387,30 +367,16 @@ void CPU::NMI()
 
 void CPU::ABS()
 {
-	APPEND_DEBUG_STRING((Word)Read(pc.Raw) << " " << std::setw(2) << (Word)Read(pc.Raw + 1) << " ");
-
 	absoluteAddress.Bytes.lo = Read(pc.Raw++);
 	absoluteAddress.Bytes.hi = Read(pc.Raw++);
-
-	fetchedVal = Read(absoluteAddress.Raw);
-
-	APPEND_DEBUG_STRING(currentInstruction->Mnemonic << " $");
-	APPEND_DEBUG_STRING(std::setw(4) << absoluteAddress.Raw);
 }
 
 void CPU::ABX()
 {
-	APPEND_DEBUG_STRING((Word)Read(pc.Raw) << " " << std::setw(2) << (Word)Read(pc.Raw + 1) << " ");
-
 	rawAddress.Bytes.lo = Read(pc.Raw++);
 	rawAddress.Bytes.hi = Read(pc.Raw++);
 
 	absoluteAddress.Raw = rawAddress.Raw + idx;
-	fetchedVal = Read(absoluteAddress.Raw);
-
-	APPEND_DEBUG_STRING(currentInstruction->Mnemonic << " $");
-	APPEND_DEBUG_STRING(std::setw(4) << fetchedAddr.Raw << ",X @ ");
-	APPEND_DEBUG_STRING(std::setw(4) << absoluteAddress.Raw);
 
 	if (rawAddress.Bytes.hi != absoluteAddress.Bytes.hi)
 		additionalCycles = 1;
@@ -418,17 +384,10 @@ void CPU::ABX()
 
 void CPU::ABY()
 {
-	APPEND_DEBUG_STRING((Word)Read(pc.Raw) << " " << std::setw(2) << (Word)Read(pc.Raw + 1) << " ");
-
 	rawAddress.Bytes.lo = Read(pc.Raw++);
 	rawAddress.Bytes.hi = Read(pc.Raw++);
 
 	absoluteAddress.Raw = rawAddress.Raw + idy;
-	fetchedVal = Read(absoluteAddress.Raw);
-
-	APPEND_DEBUG_STRING(currentInstruction->Mnemonic << " $");
-	APPEND_DEBUG_STRING(std::setw(4) << rawAddress.Raw << ",Y @ ");
-	APPEND_DEBUG_STRING(std::setw(4) << absoluteAddress.Raw);
 
 	if (rawAddress.Bytes.hi != absoluteAddress.Bytes.hi)
 		additionalCycles = 1;
@@ -436,45 +395,26 @@ void CPU::ABY()
 
 void CPU::ACC()
 {
-	APPEND_DEBUG_STRING((Word)Read(pc.Raw) << " " << (Word)Read(pc.Raw + 2) << " ");
-
 	fetchedVal = acc;
 	accumulatorAddressing = true;
-
-	APPEND_DEBUG_STRING(currentInstruction->Mnemonic << " A");
 }
 
 void CPU::IDX()
 {
-	APPEND_DEBUG_STRING((Word)Read(pc.Raw) << "    ");
-
 	Byte index = Read(pc.Raw++);
 	Byte indirectAddress = index + idx;
 
 	absoluteAddress.Bytes.lo = Read(indirectAddress);
 	absoluteAddress.Bytes.hi = Read((indirectAddress + 1) & 0xFF);
-
-	fetchedVal = Read(absoluteAddress.Raw);
-
-	APPEND_DEBUG_STRING(currentInstruction->Mnemonic << " ($");
-	APPEND_DEBUG_STRING((Word)index << ",X) @ ");
-	APPEND_DEBUG_STRING((Word)indirectAddress << " = " << std::setw(4) << absoluteAddress.Raw);
 }
 
 void CPU::IDY()
 {
-	APPEND_DEBUG_STRING((Word)Read(pc.Raw) << "    ");
-
 	Byte index = Read(pc.Raw++);
 	rawAddress.Bytes.lo = Read(index);
 	rawAddress.Bytes.hi = Read((index + 1) & 0xFF);
 
 	absoluteAddress.Raw = rawAddress.Raw + idy;
-	fetchedVal = Read(absoluteAddress.Raw);
-
-	APPEND_DEBUG_STRING(currentInstruction->Mnemonic << " ($");
-	APPEND_DEBUG_STRING((Word)index << "),Y = ");
-	APPEND_DEBUG_STRING(std::setw(4) << rawAddress.Raw << " @ " << std::setw(4) << absoluteAddress.Raw);
 
 	if (absoluteAddress.Bytes.hi != rawAddress.Bytes.hi)
 		additionalCycles = 1;
@@ -482,90 +422,49 @@ void CPU::IDY()
 
 void CPU::IMM()
 {
-	APPEND_DEBUG_STRING((Word)Read(pc.Raw) << "    ");
-
-	fetchedVal = Read(pc.Raw++);
-
-	APPEND_DEBUG_STRING(currentInstruction->Mnemonic << " #$");
-	APPEND_DEBUG_STRING((Word)fetchedVal);
+	absoluteAddress.Raw = pc.Raw++;
 }
 
 void CPU::IMP()
 {
-	APPEND_DEBUG_STRING("      ");
 	// Nothing to do
-	APPEND_DEBUG_STRING(currentInstruction->Mnemonic);
 }
 
 void CPU::IND()
 {
-	APPEND_DEBUG_STRING((Word)Read(pc.Raw) << " " << (Word)Read(pc.Raw + 2) << " ");
-
 	rawAddress.Bytes.lo = Read(pc.Raw++);
 	rawAddress.Bytes.hi = Read(pc.Raw++);
 
-	APPEND_DEBUG_STRING(currentInstruction->Mnemonic << " $(" << std::setw(4) << rawAddress.Raw);
-	
 	absoluteAddress.Bytes.lo = Read(rawAddress.Raw);
 	rawAddress.Bytes.lo++;
 	absoluteAddress.Bytes.hi = Read(rawAddress.Raw);
-
-	fetchedVal = Read(absoluteAddress.Raw);
-
-	APPEND_DEBUG_STRING(") = " << std::setw(4) << absoluteAddress.Raw);
 }
 
 void CPU::REL()
 {
-	APPEND_DEBUG_STRING((Word)Read(pc.Raw) << "    ");
-
 	relativeAddress = Read(pc.Raw++);
-
-	APPEND_DEBUG_STRING(currentInstruction->Mnemonic << " $");
-	APPEND_DEBUG_STRING((Word)pc.Raw + (int8_t)relativeAddress);
 }
 
 void CPU::ZPG()
 {
-	APPEND_DEBUG_STRING((Word)Read(pc.Raw) << "    ");
-
 	absoluteAddress.Bytes.hi = 0x00;
 	absoluteAddress.Bytes.lo = Read(pc.Raw++);
-
-	fetchedVal = Read(absoluteAddress.Raw);
-
-	APPEND_DEBUG_STRING(currentInstruction->Mnemonic << " $");
-	APPEND_DEBUG_STRING((Word)absoluteAddress.Bytes.lo);
 }
 
 void CPU::ZPX()
 {
-	APPEND_DEBUG_STRING((Word)Read(pc.Raw) << "    ");
-
 	rawAddress.Bytes.lo = Read(pc.Raw++);
 
 	absoluteAddress.Bytes.hi = 0x00;
 	absoluteAddress.Bytes.lo = rawAddress.Bytes.lo + idx;
-	fetchedVal = Read(absoluteAddress.Raw);
-
-	APPEND_DEBUG_STRING(currentInstruction->Mnemonic << " $");
-	APPEND_DEBUG_STRING((Word)rawAddress.Bytes.lo << ",X @ ");
-	APPEND_DEBUG_STRING(absoluteAddress.Raw);
 }
 
 void CPU::ZPY()
 {
-	APPEND_DEBUG_STRING((Word)Read(pc.Raw) << "    ");
-
 	rawAddress.Bytes.lo = Read(pc.Raw++);
 
 	absoluteAddress.Bytes.hi = 0x00;
 	absoluteAddress.Bytes.lo = rawAddress.Bytes.lo + idy;
-	fetchedVal = Read(absoluteAddress.Raw);
-
-	APPEND_DEBUG_STRING(currentInstruction->Mnemonic << " $");
-	APPEND_DEBUG_STRING((Word)rawAddress.Bytes.lo << ",Y @ ");
-	APPEND_DEBUG_STRING(absoluteAddress.Raw);
 }
 
 #pragma endregion
@@ -574,8 +473,7 @@ void CPU::ZPY()
 
 void CPU::ADC()
 {
-	APPEND_DEBUG_STRING(" = " << std::setw(2) << (Word)fetchedVal);
-
+	FetchValue();
 	Word result = (Word)acc + fetchedVal + status.Flag.Carry;
 
 	status.Flag.Overflow = ((((~acc & ~fetchedVal & result) | (acc & fetchedVal & ~result)) & 0x80) == 0x80);
@@ -588,8 +486,7 @@ void CPU::ADC()
 
 void CPU::AND()
 {
-	APPEND_DEBUG_STRING(" = " << std::setw(2) << (Word)fetchedVal);
-
+	FetchValue();
 	acc &= fetchedVal;
 
 	CHECK_NEGATIVE(acc);
@@ -598,8 +495,7 @@ void CPU::AND()
 
 void CPU::ASL()
 {
-	APPEND_DEBUG_STRING(" = " << std::setw(2) << (Word)fetchedVal);
-
+	FetchValue();
 	status.Flag.Carry = ((fetchedVal & 0x80) == 0x80);
 	fetchedVal <<= 1;
 
@@ -656,8 +552,7 @@ void CPU::BEQ()
 
 void CPU::BIT()
 {
-	APPEND_DEBUG_STRING(" = " << std::setw(2) << (Word)fetchedVal);
-
+	FetchValue();
 	status.Flag.Negative = ((fetchedVal & 0x80) == 0x80);
 	status.Flag.Overflow = ((fetchedVal & 0x40) == 0x40);
 
@@ -769,7 +664,7 @@ void CPU::CLV()
 
 void CPU::CMP()
 {
-	APPEND_DEBUG_STRING(" = " << std::setw(2) << (Word)fetchedVal);
+	FetchValue();
 	Word result = acc - fetchedVal;
 
 	CHECK_NEGATIVE(result);
@@ -779,7 +674,7 @@ void CPU::CMP()
 
 void CPU::CPX()
 {
-	APPEND_DEBUG_STRING(" = " << std::setw(2) << (Word)fetchedVal);
+	FetchValue();
 	Word result = idx - fetchedVal;
 
 	CHECK_NEGATIVE(result);
@@ -789,7 +684,7 @@ void CPU::CPX()
 
 void CPU::CPY()
 {
-	APPEND_DEBUG_STRING(" = " << std::setw(2) << (Word)fetchedVal);
+	FetchValue();
 	Word result = idy - fetchedVal;
 
 	CHECK_NEGATIVE(result);
@@ -799,8 +694,7 @@ void CPU::CPY()
 
 void CPU::DCP()
 {
-	APPEND_DEBUG_STRING(" = " << std::setw(2) << (Word)fetchedVal);
-
+	FetchValue();
 	fetchedVal--;
 	Write(absoluteAddress.Raw, fetchedVal);
 
@@ -815,8 +709,7 @@ void CPU::DCP()
 
 void CPU::DEC()
 {
-	APPEND_DEBUG_STRING(" = " << std::setw(2) << (Word)fetchedVal);
-
+	FetchValue();
 	fetchedVal--;
 	CHECK_NEGATIVE(fetchedVal);
 	CHECK_ZERO(fetchedVal);
@@ -826,31 +719,21 @@ void CPU::DEC()
 
 void CPU::DEX()
 {
-	APPEND_DEBUG_STRING(" = " << std::setw(2) << (Word)fetchedVal);
-
 	idx--;
 	CHECK_NEGATIVE(idx);
 	CHECK_ZERO(idx);
-
-	Write(absoluteAddress.Raw, idx);
 }
 
 void CPU::DEY()
 {
-
-	APPEND_DEBUG_STRING(" = " << std::setw(2) << (Word)fetchedVal);
-
 	idy--;
 	CHECK_NEGATIVE(idy);
 	CHECK_ZERO(idy);
-
-	Write(absoluteAddress.Raw, idy);
 }
 
 void CPU::EOR()
 {
-	APPEND_DEBUG_STRING(" = " << std::setw(2) << (Word)fetchedVal);
-
+	FetchValue();
 	acc ^= fetchedVal;
 
 	CHECK_NEGATIVE(acc);
@@ -859,6 +742,7 @@ void CPU::EOR()
 
 void CPU::INC()
 {
+	FetchValue();
 	fetchedVal++;
 	CHECK_NEGATIVE(fetchedVal);
 	CHECK_ZERO(fetchedVal);
@@ -882,8 +766,7 @@ void CPU::INY()
 
 void CPU::ISC()
 {
-	APPEND_DEBUG_STRING(" = " << std::setw(2) << (Word)fetchedVal);
-
+	FetchValue();
 	fetchedVal++;
 	Write(absoluteAddress.Raw, fetchedVal);
 
@@ -914,8 +797,7 @@ void CPU::JSR()
 
 void CPU::LAX()
 {
-	APPEND_DEBUG_STRING(" = " << std::setw(2) << (Word)fetchedVal);
-
+	FetchValue();
 	CHECK_NEGATIVE(fetchedVal);
 	CHECK_ZERO(fetchedVal);
 
@@ -925,8 +807,7 @@ void CPU::LAX()
 
 void CPU::LDA()
 {
-	APPEND_DEBUG_STRING(" = " << std::setw(2) << (Word)fetchedVal);
-
+	FetchValue();
 	CHECK_NEGATIVE(fetchedVal);
 	CHECK_ZERO(fetchedVal);
 
@@ -935,8 +816,7 @@ void CPU::LDA()
 
 void CPU::LDX()
 {
-	APPEND_DEBUG_STRING(" = " << std::setw(2) << (Word)fetchedVal);
-
+	FetchValue();
 	CHECK_NEGATIVE(fetchedVal);
 	CHECK_ZERO(fetchedVal);
 
@@ -945,8 +825,7 @@ void CPU::LDX()
 
 void CPU::LDY()
 {
-	APPEND_DEBUG_STRING(" = " << std::setw(2) << (Word)fetchedVal);
-
+	FetchValue();
 	CHECK_NEGATIVE(fetchedVal);
 	CHECK_ZERO(fetchedVal);
 
@@ -955,8 +834,7 @@ void CPU::LDY()
 
 void CPU::LSR()
 {
-	APPEND_DEBUG_STRING(" = " << std::setw(2) << (Word)fetchedVal);
-
+	FetchValue();
 	status.Flag.Carry = ((fetchedVal & 0x01) == 0x01);
 	fetchedVal >>= 1;
 
@@ -976,8 +854,7 @@ void CPU::NOP()
 
 void CPU::ORA()
 {
-	APPEND_DEBUG_STRING(" = " << std::setw(2) << (Word)fetchedVal);
-	
+	FetchValue();
 	acc |= fetchedVal;
 
 	CHECK_NEGATIVE(acc);
@@ -1011,7 +888,7 @@ void CPU::PLP()
 
 void CPU::RLA()
 {
-	APPEND_DEBUG_STRING(" = " << std::setw(2) << (Word)fetchedVal);
+	FetchValue();
 
 	Byte oldCarry = status.Flag.Carry;
 	status.Flag.Carry = ((fetchedVal & 0x80) == 0x80);
@@ -1030,7 +907,7 @@ void CPU::RLA()
 
 void CPU::ROL()
 {
-	APPEND_DEBUG_STRING(" = " << std::setw(2) << (Word)fetchedVal);
+	FetchValue();
 
 	Byte oldCarry = status.Flag.Carry;
 	status.Flag.Carry = ((fetchedVal & 0x80) == 0x80);
@@ -1048,7 +925,7 @@ void CPU::ROL()
 
 void CPU::ROR()
 {
-	APPEND_DEBUG_STRING(" = " << std::setw(2) << (Word)fetchedVal);
+	FetchValue();
 
 	Byte oldCarry = status.Flag.Carry;
 	status.Flag.Carry = ((fetchedVal & 0x01) == 0x01);
@@ -1066,7 +943,7 @@ void CPU::ROR()
 
 void CPU::RRA()
 {
-	APPEND_DEBUG_STRING(" = " << std::setw(2) << (Word)fetchedVal);
+	FetchValue();
 
 	Byte oldCarry = status.Flag.Carry;
 	status.Flag.Carry = ((fetchedVal & 0x01) == 0x01);
@@ -1105,15 +982,12 @@ void CPU::RTS()
 
 void CPU::SAX()
 {
-	APPEND_DEBUG_STRING(" = " << std::setw(2) << (Word)fetchedVal);
-
 	Write(absoluteAddress.Raw, acc & idx);
 }
 
 void CPU::SBC()
 {
-	APPEND_DEBUG_STRING(" = " << std::setw(2) << (Word)fetchedVal);
-
+	FetchValue();
 	Word result = (Word)acc - fetchedVal - (1 - status.Flag.Carry);
 
 	status.Flag.Overflow = ((((~acc & fetchedVal & result) | (acc & ~fetchedVal & ~result)) & 0x80) == 0x80);
@@ -1141,8 +1015,7 @@ void CPU::SEI()
 
 void CPU::SLO()
 {
-	APPEND_DEBUG_STRING(" = " << std::setw(2) << (Word)fetchedVal);
-
+	FetchValue();
 	status.Flag.Carry = ((fetchedVal & 0x80) == 0x80);
 	fetchedVal <<= 1;
 
@@ -1158,8 +1031,7 @@ void CPU::SLO()
 
 void CPU::SRE()
 {
-	APPEND_DEBUG_STRING(" = " << std::setw(2) << (Word)fetchedVal);
-
+	FetchValue();
 	status.Flag.Carry = ((fetchedVal & 0x01) == 0x01);
 	fetchedVal >>= 1;
 
@@ -1175,23 +1047,17 @@ void CPU::SRE()
 
 void CPU::STA()
 {
-	APPEND_DEBUG_STRING(" = " << std::setw(2) << (Word)fetchedVal);
-
 	Write(absoluteAddress.Raw, acc);
 	additionalCycles = 0;
 }
 
 void CPU::STX()
 {
-	APPEND_DEBUG_STRING(" = " << std::setw(2) << (Word)fetchedVal);
-
 	Write(absoluteAddress.Raw, idx);
 }
 
 void CPU::STY()
 {
-	APPEND_DEBUG_STRING(" = " << std::setw(2) << (Word)fetchedVal);
-
 	Write(absoluteAddress.Raw, idy);
 }
 

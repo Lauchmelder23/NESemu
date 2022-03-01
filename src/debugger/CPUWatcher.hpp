@@ -8,7 +8,7 @@ class CPUWatcher :
 	public DebugWindow
 {
 public:
-	CPUWatcher(CPU* cpu);
+	CPUWatcher(Debugger* debugger, CPU* cpu);
 
 	virtual void OnRender() override;
 

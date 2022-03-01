@@ -8,7 +8,7 @@ class PPUWatcher :
 	public DebugWindow
 {
 public:
-	PPUWatcher(PPU* ppu);
+	PPUWatcher(Debugger* debugger, PPU* ppu);
 
 	virtual void OnRender() override;
 

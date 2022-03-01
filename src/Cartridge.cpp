@@ -30,7 +30,7 @@ void Cartridge::Load(std::string path)
 	file.read((char*)&header, sizeof(Header));
 
 	// Figure out which mapper the cartridge uses and create a mapper object
-	uint8_t mapperNumber = (header.MapperHi & 0xF0) | (header.MapperLo >> 4);
+	uint8_t mapperNumber = (header.Flag7.MapperHi << 4) | header.Flag6.MapperLo;
 	LOG_CORE_INFO("Cartridge requires Mapper {0:d}", mapperNumber);
 	switch (mapperNumber)
 	{

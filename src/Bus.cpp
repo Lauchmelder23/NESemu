@@ -10,7 +10,7 @@ Bus::Bus() :
 	RAM = std::vector<Byte>(0x800);
 
 	LOG_CORE_INFO("Allocating VRAM");
-	VRAM = std::vector<Byte>(0x1000);
+	VRAM = std::vector<Byte>(0x800);
 
 	LOG_CORE_INFO("Inserting cartridge");
 	cartridge.Load("roms/nestest.nes");
@@ -107,6 +107,9 @@ Byte Bus::ReadPPU(Word addr)
 	}
 	else if(0x2000  <= addr && addr < 0x4000)
 	{
+		if (cartridge.MapCIRAM(addr))
+			return cartridge.ReadVRAM(addr);
+
 		return VRAM[addr & 0xFFF];
 	}
 	
@@ -139,6 +142,9 @@ void Bus::WritePPU(Word addr, Byte val)
 	}
 	else if (0x2000 <= addr && addr < 0x4000)
 	{
+		if(cartridge.MapCIRAM(addr))
+			cartridge.WriteVRAM(addr, val);
+
 		VRAM[addr & 0xFFF] = val;
 	}
 }

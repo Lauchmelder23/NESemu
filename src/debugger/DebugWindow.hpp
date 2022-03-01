@@ -2,11 +2,13 @@
 
 #include <string>
 
+class Debugger;
+
 class DebugWindow
 {
 public:
-	DebugWindow(const std::string& title) :
-		title(title)
+	DebugWindow(const std::string& title, Debugger* parent) :
+		title(title), parent(parent)
 	{
 	}
 
@@ -16,4 +18,7 @@ public:
 public:
 	const std::string title;
 	bool isOpen = false;
+
+protected:
+	Debugger* parent;
 };

@@ -9,7 +9,7 @@ class MemoryViewer :
 	public DebugWindow
 {
 public:
-	MemoryViewer(Bus* bus);
+	MemoryViewer(Debugger* debugger, Bus* bus);
 
 	virtual void OnRender() override;
 

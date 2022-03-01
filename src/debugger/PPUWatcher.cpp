@@ -3,8 +3,8 @@
 #include <imgui/imgui.h>
 #include "../PPU.hpp"
 
-PPUWatcher::PPUWatcher(PPU* ppu) :
-	DebugWindow("PPU Watch"), ppu(ppu)
+PPUWatcher::PPUWatcher(Debugger* debugger, PPU* ppu) :
+	DebugWindow("PPU Watch", debugger), ppu(ppu)
 {
 }
 

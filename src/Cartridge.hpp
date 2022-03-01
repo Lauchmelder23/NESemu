@@ -9,22 +9,6 @@
 class Bus;
 
 /**
- * @brief iNES ROM header.
- */
-struct Header
-{
-	Byte Signature[4];
-	Byte PrgROM;
-	Byte ChrROM;
-	Byte MapperLo;
-	Byte MapperHi;
-	Byte PrgRAM;
-	Byte TV1;
-	Byte TV2;
-	Byte Padding[5];
-};
-
-/**
  * @brief Represents a cartridge and handles CPU/PPU read/writes.
  */
 class Cartridge
@@ -57,6 +41,10 @@ public:
 	inline void WritePPU(Word addr, Byte val) { mapper->WritePPU(addr, val); }
 
 	
+	inline bool MapCIRAM(Word& addr) { return mapper->MapCIRAM(addr); }
+	inline Byte ReadVRAM(Word addr) { return mapper->ReadVRAM(addr); }
+	inline void WriteVRAM(Word addr, Byte val) { mapper->WriteVRAM(addr, val); }
+
 	/**
 	 * @brief Load an iNES file from disk.
 	 */

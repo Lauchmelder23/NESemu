@@ -4,6 +4,7 @@
 #include <imgui/imgui_internal.h>
 
 #include "../Bus.hpp"
+#include "../Log.hpp"
 #include "CPUWatcher.hpp"
 #include "PPUWatcher.hpp"
 #include "Disassembler.hpp"
@@ -13,11 +14,12 @@
 Debugger::Debugger(Bus* bus) :
 	bus(bus)
 {
-	windows.push_back(new CPUWatcher(&bus->cpu));
-	windows.push_back(new PPUWatcher(&bus->ppu));
-	windows.push_back(new Disassembler(&bus->cpu));
-	windows.push_back(new MemoryViewer(bus));
-	windows.push_back(new NametableViewer(bus));
+	windows.push_back(new CPUWatcher(this, &bus->cpu));
+	windows.push_back(new PPUWatcher(this, &bus->ppu));
+	disassembler = new Disassembler(this, &bus->cpu);
+	windows.push_back(disassembler);
+	windows.push_back(new MemoryViewer(this, bus));
+	windows.push_back(new NametableViewer(this, bus));
 }
 
 Debugger::~Debugger()
@@ -26,10 +28,32 @@ Debugger::~Debugger()
 		delete window;
 }
 
+bool Debugger::Frame()
+{
+	try
+	{
+		while (!bus->ppu.IsFrameDone())
+		{
+			bus->Tick();
+			if (disassembler->BreakpointHit())
+			{
+				running = false;
+				break;
+			}
+		}
+	}
+	catch (const std::runtime_error& err)
+	{
+		LOG_CORE_FATAL("Fatal Bus error: {0}", err.what());
+		bus->cpu.Halt();
+		return true;
+	}
+}
+
 bool Debugger::Update()
 {
 	if (running)
-		return bus->Frame();
+		return Frame();
 
 	return true;
 }
