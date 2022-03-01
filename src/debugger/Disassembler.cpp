@@ -227,10 +227,20 @@ void Disassembler::BreakpointWindow()
 	ImGui::Separator();
 
 	char label[6];
-	for (const Breakpoint& breakpoint : breakpoints)
+	for (std::set<Breakpoint>::const_iterator it = breakpoints.begin(); it != breakpoints.end(); )
 	{
-		std::sprintf(label, "$%04X", breakpoint.GetAddress());
-		ImGui::Checkbox(label, &breakpoint.active);
+		if (ImGui::Button("X"))
+		{ 
+			it = breakpoints.erase(it);
+			continue;
+		}
+
+		ImGui::SameLine();
+
+		std::sprintf(label, "$%04X", it->GetAddress());
+		ImGui::Checkbox(label, &it->active);
+		
+		it++;
 	}
 
 	ImGui::End();
