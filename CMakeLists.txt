@@ -6,7 +6,7 @@ cmake_minimum_required (VERSION 3.8)
 project ("NES Emulator")
 
 find_package(glfw3)
-if(NOT GLFW3_FOUND)
+if(NOT glfw3_FOUND)
 	add_subdirectory("vendor/glfw")
 endif()
 add_subdirectory("vendor/glad")
