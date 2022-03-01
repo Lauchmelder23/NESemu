@@ -5,6 +5,8 @@
 #include <imgui/backends/imgui_impl_opengl3.h>
 #include <imgui/imgui.h>
 
+#include "Input.hpp"
+
 Window::Window(uint16_t width, uint16_t height, const std::string& title) :
 	handle(nullptr)
 {
@@ -17,6 +19,7 @@ Window::Window(uint16_t width, uint16_t height, const std::string& title) :
 	}
 
 	glfwMakeContextCurrent(handle);
+	Input::SetWindow(this);
 }
 
 Window::~Window()

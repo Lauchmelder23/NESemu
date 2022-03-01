@@ -3,6 +3,8 @@
 
 #include <stdexcept>
 
+#include "controllers/StandardController.hpp"
+
 Bus::Bus() :
 	cpu(this), ppu(this), cartridge(this)
 {
@@ -20,6 +22,8 @@ Bus::Bus() :
 
 	LOG_CORE_INFO("Powering up PPU");
 	ppu.Powerup();
+
+	controllerPort.PlugInController<StandardController>(0);
 }
 
 void Bus::Reboot()
@@ -36,6 +40,8 @@ void Bus::Reset()
 
 uint8_t Bus::Tick()
 {
+	controllerPort.Tick();
+
 	uint8_t result = cpu.Tick();
 
 	// 3 ppu ticks per cpu tick
@@ -93,6 +99,15 @@ Byte Bus::ReadCPU(Word addr)
 	{
 		return cartridge.ReadCPU(addr);
 	}
+	else if (0x4000 <= addr && addr <= 0x4017)
+	{
+		switch (addr)
+		{
+		case 0x4016:
+		case 0x4017:
+			return controllerPort.Read(addr);
+		}
+	}
 
 	return 0x00;
 }
@@ -129,6 +144,16 @@ void Bus::WriteCPU(Word addr, Byte val)
 	else if (0x8000 <= addr && addr <= 0xFFFF)
 	{
 		cartridge.WriteCPU(addr, val);
+	}
+	else if (0x4000 <= addr && addr <= 0x4017)
+	{
+		switch (addr)
+		{
+		case 0x4016:
+		case 0x4017:
+			controllerPort.Write(addr, val);
+			break;
+		}
 	}
 }
 

@@ -6,6 +6,7 @@
 #include "CPU.hpp"
 #include "PPU.hpp"
 #include "Cartridge.hpp"
+#include "ControllerPort.hpp"
 
 /**
  * @brief The main bus for hardware to communicate.
@@ -85,4 +86,5 @@ private:
 	CPU cpu;
 	PPU ppu;
 	Cartridge cartridge;
+	ControllerPort controllerPort;
 };

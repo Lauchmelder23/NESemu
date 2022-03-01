@@ -26,14 +26,13 @@ public:
 
 		if (header.Flag6.Mirroring == 0x0)
 		{
+			// Shift Bit 11 into Bit 10
 			addr &= ~(1 << 10);
 			addr |= ((addr & (1 << 11)) >> 1);
-			addr &= ~(1 << 11);
 		}
-		else
-		{
-			addr &= ~(1 << 11);
-		}
+
+		// Unset bit 11
+		addr &= ~(1 << 11);
 
 		return false;
 	}

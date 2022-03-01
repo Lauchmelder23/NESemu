@@ -10,6 +10,7 @@
 #include "Disassembler.hpp"
 #include "MemoryViewer.hpp"
 #include "NametableViewer.hpp"
+#include "ControllerPortViewer.hpp"
 
 Debugger::Debugger(Bus* bus) :
 	bus(bus)
@@ -20,6 +21,7 @@ Debugger::Debugger(Bus* bus) :
 	windows.push_back(disassembler);
 	windows.push_back(new MemoryViewer(this, bus));
 	windows.push_back(new NametableViewer(this, bus));
+	windows.push_back(new ControllerPortViewer(this, &bus->controllerPort));
 }
 
 Debugger::~Debugger()
