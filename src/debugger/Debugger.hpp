@@ -5,6 +5,7 @@
 
 class Bus;
 class Disassembler;
+class PPUWatcher;
 
 class Debugger
 {
@@ -27,4 +28,5 @@ private:
 
 	std::vector<DebugWindow*> windows;
 	Disassembler* disassembler;
+	PPUWatcher* ppuWatcher;
 };

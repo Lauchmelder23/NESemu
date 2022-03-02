@@ -52,6 +52,15 @@ uint8_t Bus::Tick()
 	return result;
 }
 
+void Bus::PPUTick()
+{
+	if (ppuClock == 0)
+		cpu.Tick();
+
+	ppu.Tick();
+	ppuClock = (ppuClock + 1) % 3;
+}
+
 bool Bus::Instruction()
 {
 	try

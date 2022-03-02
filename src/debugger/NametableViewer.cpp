@@ -98,7 +98,7 @@ void NametableViewer::DisplayNametable(uint8_t index)
 
 		for (Word hi = 0x0; hi <= 0x3F; hi++)
 		{
-			Byte hiOffset = hi << 4;
+			Word hiOffset = hi << 4;
 			ImGui::TableNextColumn();
 
 			ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.7f, 0.7f, 0.7f, 1.0f));

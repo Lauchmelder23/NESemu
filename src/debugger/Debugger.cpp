@@ -16,9 +16,13 @@ Debugger::Debugger(Bus* bus) :
 	bus(bus)
 {
 	windows.push_back(new CPUWatcher(this, &bus->cpu));
-	windows.push_back(new PPUWatcher(this, &bus->ppu));
+
+	ppuWatcher = new PPUWatcher(this, &bus->ppu);
+	windows.push_back(ppuWatcher);
+
 	disassembler = new Disassembler(this, &bus->cpu);
 	windows.push_back(disassembler);
+
 	windows.push_back(new MemoryViewer(this, bus));
 	windows.push_back(new NametableViewer(this, bus));
 	windows.push_back(new ControllerPortViewer(this, &bus->controllerPort));
@@ -37,7 +41,7 @@ bool Debugger::Frame()
 		while (!bus->ppu.IsFrameDone())
 		{
 			bus->Tick();
-			if (disassembler->BreakpointHit())
+			if (disassembler->BreakpointHit() || ppuWatcher->BreakpointHit())
 			{
 				running = false;
 				break;
@@ -92,13 +96,18 @@ void Debugger::Render()
 		if (running)
 			ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{ 0.7f, 0.7f, 0.7f, 0.7f });
 
+		if (ImGui::Button("PPU Tick"))
+			bus->PPUTick();
+
+		ImGui::SameLine();
+
 		if (ImGui::Button("Single Step"))
 			bus->Instruction();
 
 		ImGui::SameLine();
 
 		if (ImGui::Button("Single Frame"))
-			bus->Frame();
+			Frame();
 
 		if (running)
 			ImGui::PopStyleColor();

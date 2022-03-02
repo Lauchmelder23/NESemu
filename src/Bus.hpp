@@ -45,6 +45,8 @@ public:
 	 */
 	uint8_t Tick();
 
+	void PPUTick();
+
 	/**
 	 * @brief Advance the emulator by one CPU instruction.
 	 */
@@ -87,4 +89,6 @@ private:
 	PPU ppu;
 	Cartridge cartridge;
 	ControllerPort controllerPort;
+
+	uint8_t ppuClock = 0;
 };

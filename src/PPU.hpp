@@ -4,6 +4,44 @@
 
 class Bus;
 
+enum class ScanlineType
+{
+	PreRender,
+	Visible,
+	PostRender,
+	VBlank
+};
+
+enum class CycleType
+{
+	Idle,
+	Fetching,
+	SpriteFetching,
+	PreFetching,
+	UnknownFetching
+};
+
+enum class FetchingPhase
+{
+	NametableByte,
+	AttributeTableByte,
+	PatternTableLo,
+	PatternTableHi
+};
+
+union VRAMAddress
+{
+	struct
+	{
+		Byte CoarseX : 5;
+		Byte CoarseY : 5;
+		Byte NametableSel : 2;
+		Byte FineY : 3;
+	};
+
+	Word Raw;
+};
+
 /**
  * @brief The PPU of the NES.
  */
@@ -58,6 +96,9 @@ private:
 	 * @brief Wraps Bus::WritePPU.
 	 */
 	void Write(Word addr, Byte val);
+
+	void UpdateState();
+	void PerformRenderAction();
 
 private: // Registers
 
@@ -115,12 +156,25 @@ private: // Registers
 
 	Address ppuaddr;
 
-	// Current x, y position the PPU operates on
-	uint16_t x, y;
-	Byte latch = 0;
+	VRAMAddress current{ 0 };
+	VRAMAddress temporary{ 0 };
+	uint16_t fineX;
 	bool addressLatch = false;
 
+	Byte latch = 0;
+
+	Word x, y;
+	Byte nametableByte = 0x00;
+	Byte attributeTableByte = 0x00;
+	Byte patternTableLo = 0x00;
+	Byte patternTableHi = 0x00;
+
 private:
+	ScanlineType scanlineType;
+	CycleType cycleType;
+	FetchingPhase fetchPhase;
+
+	uint8_t memoryAccessLatch = 0;
 	bool isFrameDone = false;
 	Bus* bus;
 };
