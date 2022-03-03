@@ -86,7 +86,15 @@ void PPUWatcher::OnRender()
 		ImGui::Text("Pattern Tile Lo: %02X", ppu->patternTableLo);
 		ImGui::Text("Pattern Tile Hi: %02X", ppu->patternTableHi);
 	}
-	
+
+	if (ImGui::CollapsingHeader("Shift Registers"))
+	{
+		ImGui::Text("Pattern Tile Lo: %04X", ppu->loTile.Raw);
+		ImGui::Text("Pattern Tile Hi: %02X", ppu->hiTile.Raw);
+		ImGui::Text("Attribute Lo   : %02X", ppu->loAttribute.Raw);
+		ImGui::Text("Attribute Hi   : %02X", ppu->hiAttribute.Raw);
+	}
+
 	if (ImGui::CollapsingHeader("Registers"))
 	{
 		if (ImGui::TreeNode("PPUCTRL"))

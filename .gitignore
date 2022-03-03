@@ -3,3 +3,6 @@
 
 out/
 *.json
+
+*.nes
+!roms/nestest.nes

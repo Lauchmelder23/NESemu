@@ -150,6 +150,7 @@ void CPU::CreateInstructionTable()
 	InstructionTable[0x48] = NEW_INSTRUCTION(PHA, IMP, 1, 3);
 	InstructionTable[0x49] = NEW_INSTRUCTION(EOR, IMM, 2, 2);
 	InstructionTable[0x4A] = NEW_INSTRUCTION(LSR, ACC, 1, 2);
+	InstructionTable[0x4B] = NEW_ILLGL_INSTR(ALR, IMM, 2, 2);
 	InstructionTable[0x4C] = NEW_INSTRUCTION(JMP, ABS, 3, 3);
 	InstructionTable[0x4D] = NEW_INSTRUCTION(EOR, ABS, 3, 4);
 	InstructionTable[0x4E] = NEW_INSTRUCTION(LSR, ABS, 3, 6);
@@ -212,6 +213,7 @@ void CPU::CreateInstructionTable()
 	InstructionTable[0x88] = NEW_INSTRUCTION(DEY, IMP, 1, 2);
 	InstructionTable[0x89] = NEW_ILLGL_INSTR(NOP, IMM, 2, 2);
 	InstructionTable[0x8A] = NEW_INSTRUCTION(TXA, IMP, 1, 2);
+	InstructionTable[0x8B] = NEW_ILLGL_INSTR(ANE, IMM, 2, 2);
 	InstructionTable[0x8C] = NEW_INSTRUCTION(STY, ABS, 3, 4);
 	InstructionTable[0x8D] = NEW_INSTRUCTION(STA, ABS, 3, 4);
 	InstructionTable[0x8E] = NEW_INSTRUCTION(STX, ABS, 3, 4);
@@ -239,6 +241,7 @@ void CPU::CreateInstructionTable()
 	InstructionTable[0xA8] = NEW_INSTRUCTION(TAY, IMP, 1, 2);
 	InstructionTable[0xA9] = NEW_INSTRUCTION(LDA, IMM, 2, 2);
 	InstructionTable[0xAA] = NEW_INSTRUCTION(TAX, IMP, 1, 2);
+	InstructionTable[0xAB] = NEW_ILLGL_INSTR(LXA, IMM, 2, 2);
 	InstructionTable[0xAC] = NEW_INSTRUCTION(LDY, ABS, 3, 4);
 	InstructionTable[0xAD] = NEW_INSTRUCTION(LDA, ABS, 3, 4);
 	InstructionTable[0xAE] = NEW_INSTRUCTION(LDX, ABS, 3, 4);
@@ -350,6 +353,20 @@ void CPU::Reset()
 	pc.Bytes.lo = Read(0xFFFC);
 	pc.Bytes.hi = Read(0xFFFD);
 	halted = false;
+}
+
+void CPU::IRQ()
+{
+	if (status.Flag.InterruptDisable)
+		return;
+
+	Push(pc.Bytes.hi);
+	Push(pc.Bytes.lo);
+	Push(status.Raw | (0x20 << 4));
+
+	status.Flag.InterruptDisable = 1;
+	pc.Bytes.lo = Read(0xFFFE);
+	pc.Bytes.hi = Read(0xFFFF);
 }
 
 void CPU::NMI()
@@ -484,6 +501,20 @@ void CPU::ADC()
 	status.Flag.Carry = ((result & 0x100) == 0x100);
 }
 
+void CPU::ALR()
+{
+	FetchValue();
+	acc &= fetchedVal;
+
+	status.Flag.Carry = ((acc & 0x01) == 0x01);
+	acc >>= 1;
+
+	status.Flag.Negative = 0;
+	CHECK_ZERO(acc);
+
+	additionalCycles = 0;
+}
+
 void CPU::AND()
 {
 	FetchValue();
@@ -491,6 +522,19 @@ void CPU::AND()
 
 	CHECK_NEGATIVE(acc);
 	CHECK_ZERO(acc);
+}
+
+void CPU::ANE()
+{
+	FetchValue();
+	Byte result = (acc | 0xFF) & idx & fetchedVal;
+
+	acc = result;
+
+	CHECK_NEGATIVE(result);
+	CHECK_ZERO(result);
+
+	additionalCycles = 0;
 }
 
 void CPU::ASL()
@@ -845,6 +889,19 @@ void CPU::LSR()
 		acc = fetchedVal;
 	else
 		Write(absoluteAddress.Raw, fetchedVal);
+}
+
+void CPU::LXA()
+{
+	FetchValue();
+	Byte result = (acc & 0xFF) & fetchedVal;
+	acc = result;
+	idx = result;
+
+	CHECK_NEGATIVE(result);
+	CHECK_ZERO(result);
+
+	additionalCycles = 0;
 }
 
 void CPU::NOP()

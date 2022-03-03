@@ -27,7 +27,7 @@ public:
 	{
 		Byte output = outRegister & 1;
 		outRegister >>= 1;
-		return 0xF ^ (output << outPin);
+		return (output << outPin);
 	}
 
 protected:

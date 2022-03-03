@@ -8,8 +8,9 @@ Mapper000::Mapper000(const Header& header, std::ifstream& ifs) :
 	Mapper(header)
 {
 	LOG_CORE_INFO("Allocating PRG ROM");
-	PRG_ROM = std::vector<Byte>(0x4000);
-	ifs.read((char*)PRG_ROM.data(), 0x4000);
+	prgBanks = header.PrgROM;
+	PRG_ROM = std::vector<Byte>(0x4000 * prgBanks);
+	ifs.read((char*)PRG_ROM.data(), 0x4000 * prgBanks);
 
 	LOG_CORE_INFO("Allocating CHR ROM");
 	CHR_ROM = std::vector<Byte>(0x2000);
@@ -20,7 +21,7 @@ Byte Mapper000::ReadCPU(Word addr)
 {
 	if (0x8000 <= addr && addr <= 0xFFFF)
 	{
-		return PRG_ROM[addr & 0x03FFF];
+		return PRG_ROM[addr & (prgBanks * 0x4000 - 1)];
 	}
 
 	return 0x00;

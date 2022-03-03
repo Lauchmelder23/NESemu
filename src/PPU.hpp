@@ -1,5 +1,6 @@
 #pragma once
 
+#include <vector>
 #include "Types.hpp"
 
 class Bus;
@@ -43,12 +44,26 @@ union VRAMAddress
 	Word Raw;
 };
 
+union ShiftRegister
+{
+	struct
+	{
+		Byte Lo;
+		Byte Hi;
+	};
+
+	Word Raw;
+};
+
 /**
  * @brief The PPU of the NES.
  */
 class PPU
 {
 	friend class PPUWatcher;
+
+public:
+	static const std::vector<Color> colorTable;
 
 public:
 	PPU(Bus* bus, Screen* screen);
@@ -169,6 +184,11 @@ private: // Registers
 	Byte attributeTableByte = 0x00;
 	Byte patternTableLo = 0x00;
 	Byte patternTableHi = 0x00;
+
+	ShiftRegister loTile{ 0 };
+	ShiftRegister hiTile{ 0 };
+	ShiftRegister hiAttribute{ 0 };
+	ShiftRegister loAttribute{ 0 };
 
 private:
 	ScanlineType scanlineType;

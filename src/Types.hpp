@@ -47,3 +47,10 @@ struct Header
 	Byte TV2;
 	Byte Padding[5];
 };
+
+struct Color
+{
+	uint8_t r;
+	uint8_t g;
+	uint8_t b;
+};

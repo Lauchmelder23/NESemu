@@ -16,4 +16,7 @@ public:
 	virtual Byte ReadPPU(Word addr) override;
 	virtual void WriteCPU(Word addr, Byte val) override;
 	virtual void WritePPU(Word addr, Byte val) override;
+
+private:
+	Byte prgBanks = 0;
 };

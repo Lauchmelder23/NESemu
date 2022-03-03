@@ -5,6 +5,7 @@
 #include "Types.hpp"
 #include "CPU.hpp"
 #include "PPU.hpp"
+#include "APU.hpp"
 #include "Cartridge.hpp"
 #include "ControllerPort.hpp"
 
@@ -21,6 +22,7 @@ class Bus
 	friend class Debugger;
 	friend class MemoryViewer;
 	friend class NametableViewer;
+	friend class Palettes;
 
 public:
 	Bus(Screen* screen);
@@ -82,11 +84,14 @@ public:
 	 * @brief Lets the PPU trigger NMIs.
 	 */
 	inline void NMI() { cpu.NMI(); }
+	inline void IRQ() { cpu.IRQ(); }
 
 private:
 	std::vector<Byte> RAM, VRAM;
+	std::vector<Byte> palettes;
 	CPU cpu;
 	PPU ppu;
+	APU apu;
 	Cartridge cartridge;
 	ControllerPort controllerPort;
 

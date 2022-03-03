@@ -165,7 +165,9 @@ private:	// Stuff regarding instructions
 	// Instructions that the NES can perform
 	// They simply perform the operations needed
 	void ADC();
+	void ALR();
 	void AND();
+	void ANE();
 	void ASL();
 	void BCC();
 	void BCS();
@@ -200,6 +202,7 @@ private:	// Stuff regarding instructions
 	void LDX();
 	void LDY();
 	void LSR();
+	void LXA();
 	void NOP();
 	void ORA();
 	void PHA();

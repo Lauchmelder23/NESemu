@@ -4,10 +4,79 @@
 
 #include "gfx/Screen.hpp"
 
+const std::vector<Color> PPU::colorTable = {
+	{84,	84,		84 },
+	{0,		30,		116 },
+	{8,		16,		144 },
+	{48,	0,		136 },
+	{68,	0,		100 },
+	{92,	0,		48 },
+	{84,	4,		0 },
+	{60,	24,		0 },
+	{32,	42,		0 },
+	{8,		58,		0 },
+	{0,		64,		0 },
+	{0,		60,		0 },
+	{0,		50,		60 },
+	{0,		0,		0 },
+	{0,		0,		0 },
+	{0,		0,		0 },
+
+	{152,	150,	152 },
+	{8,		76,		196 },
+	{48,	50,		236 },
+	{92,	30,		228 },
+	{136,	20,		176 },
+	{160,	20,		100 },
+	{152,	34,		32 },
+	{120,	60,		0 },
+	{84,	90,		0 },
+	{40,	114,	0 },
+	{8,		124,	0 },
+	{0,		118,	40 },
+	{0,		102,	120 },
+	{0,		0,		0 },
+	{0,		0,		0 },
+	{0,		0,		0 },
+
+	{236,	238,	236 },
+	{76,	154,	236 },
+	{120,	124,	236 },
+	{176,	98,		236 },
+	{228,	84,		236 },
+	{236,	88,		180 },
+	{236,	106,	100 },
+	{212,	136,	32 },
+	{160,	170,	0 },
+	{116,	196,	0 },
+	{76,	208,	32 },
+	{56,	204,	108 },
+	{56,	180,	204 },
+	{60,	60,		60 },
+	{0,		0,		0 },
+	{0,		0,		0 },
+
+	{236,	238,	236 },
+	{168,	204,	236 },
+	{188,	188,	236 },
+	{212,	178,	236 },
+	{236,	174,	236 },
+	{236,	174,	212 },
+	{236,	180,	176 },
+	{228,	196,	144 },
+	{204,	210,	120 },
+	{180,	222,	120 },
+	{168,	226,	144 },
+	{152,	226,	180 },
+	{160,	214,	228 },
+	{160,	162,	160 },
+	{0,		0,		0 },
+	{0,		0,		0 }
+};
+
 PPU::PPU(Bus* bus, Screen* screen) :
 	bus(bus), screen(screen), ppuctrl{ 0 }, ppustatus{ 0 }
 {
-	LOG_CORE_INFO("{0}", sizeof(VRAMAddress));
 }
 
 void PPU::Powerup()
@@ -77,20 +146,49 @@ void PPU::Tick()
 	if (y == 261 && x == 1)
 		ppustatus.Flag.VBlankStarted = 0;
 
-
 	// Need to render
 	if (scanlineType == ScanlineType::Visible || scanlineType == ScanlineType::PreRender)
 	{
 		PerformRenderAction();
+		if (x == 257)
+		{
+			current.CoarseX = temporary.CoarseX;
+			current.NametableSel &= 0x2;
+			current.NametableSel |= temporary.NametableSel & 0x1;
+		}
+
+		if (scanlineType == ScanlineType::PreRender && x >= 280 && x <= 304)
+		{
+			current.FineY = temporary.FineY;
+			current.CoarseY = temporary.CoarseY;
+			current.NametableSel &= 0x1;
+			current.NametableSel |= temporary.NametableSel & 0x2;
+		}
+
 	}
 	
 	if (x < 256 && y < 240)
 	{
-		uint8_t xOffset = 7 - fineX;
+		Byte loBit = (loTile.Hi & 0x80) >> 7;
+		Byte hiBit = (hiTile.Hi & 0x80) >> 7;
+		Byte loAttrBit = (loAttribute.Hi & 0x80) >> 7;
+		Byte hiAttrBit = (hiAttribute.Hi & 0x80) >> 7;
 
-		uint8_t color = (((patternTableHi >> xOffset) & 0x1) << 1) | ((patternTableLo >> xOffset) & 0x1);
-		color *= 80;
-		screen->SetPixel(x, y, { color, color, color});
+		uint8_t color = (hiBit << 1) | loBit;
+		uint8_t palette = (hiAttrBit << 1) | loAttrBit;
+		if (color == 0x00)
+			palette = 0x00;
+
+		uint8_t colorVal = Read(0x3F00 | (palette << 2) | color);
+		if (colorVal != 0x0f)
+			volatile int dfjk = 3;
+
+		screen->SetPixel(x, y, colorTable[colorVal]);
+
+		loTile.Raw <<= 1;
+		hiTile.Raw <<= 1;
+		loAttribute.Raw <<= 1;
+		hiAttribute.Raw <<= 1;
 	}
 }
 
@@ -282,7 +380,7 @@ void PPU::PerformRenderAction()
 			break;
 
 		case FetchingPhase::AttributeTableByte:
-			attributeTableByte = Read(0x23C0 | (current.Raw & 0x0FFF) | ((current.Raw >> 4) & 0x38) | ((current.Raw >> 2) & 0x07));
+			attributeTableByte = Read(0x23C0 | (current.Raw & 0x0C00) | ((current.CoarseY >> 2) << 3) | (current.CoarseX >> 2));
 			fetchPhase = FetchingPhase::PatternTableLo;
 			break;
 
@@ -292,29 +390,25 @@ void PPU::PerformRenderAction()
 			break;
 
 		case FetchingPhase::PatternTableHi:
-			patternTableLo = Read((((Word)ppuctrl.Flag.BackgrPatternTableAddr << 12) | ((Word)nametableByte << 4)) + 8 + current.FineY);
+			patternTableHi = Read((((Word)ppuctrl.Flag.BackgrPatternTableAddr << 12) | ((Word)nametableByte << 4)) + 8 + current.FineY);
+
+			loTile.Lo = patternTableLo;
+			hiTile.Lo = patternTableHi;
 
 			current.CoarseX++;
 			if (x == 256)
 			{
-				current.CoarseX = temporary.CoarseX;
-				current.NametableSel ^= 0x1;
-
-				if (current.FineY < 7)
+				current.FineY++;
+				if (current.FineY == 0)
 				{
-					current.FineY++;
-				}
-				else
-				{
-					current.FineY = temporary.FineY;
 					if (current.CoarseY == 29)
 					{
-						current.CoarseY = temporary.CoarseY;
+						current.CoarseY = 0;
 						current.NametableSel ^= 0x2;
 					}
 					else if (current.CoarseY == 31)
 					{
-						current.CoarseY = temporary.CoarseY;
+						current.CoarseY = 0;
 					}
 					else
 					{
@@ -322,6 +416,13 @@ void PPU::PerformRenderAction()
 					}
 				}
 			}
+
+			Byte attributeHalfNybble = attributeTableByte;
+			attributeHalfNybble >>= ((current.CoarseX % 2) ? 2 : 0);
+			attributeHalfNybble >>= ((current.CoarseY % 2) ? 0 : 4);
+
+			loAttribute.Lo = ((attributeHalfNybble & 1) ? 0xFF : 0x00);
+			hiAttribute.Lo = ((attributeHalfNybble & 2) ? 0xFF : 0x00);
 
 			fetchPhase = FetchingPhase::NametableByte;
 			break;
