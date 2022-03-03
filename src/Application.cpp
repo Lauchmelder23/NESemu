@@ -10,6 +10,7 @@
 
 #include "Log.hpp"
 #include "Bus.hpp"
+#include "Screen.hpp"
 #include "Debugger.hpp"
 #include "gfx/Window.hpp"
 
@@ -48,7 +49,7 @@ Application::Application() :
 	LOG_CORE_INFO("Creating window");
 	try
 	{
-		window = new Window(1280, 720, "NES Emulator");
+		window = new Window(256, 240, "NES Emulator");
 	}
 	catch (const std::runtime_error& err)
 	{
@@ -60,6 +61,8 @@ Application::Application() :
 	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
 		throw std::runtime_error("Failed to set up OpenGL loader");
 	
+	window->SetScale(scale);
+
 	LOG_CORE_INFO("Setting up ImGui");
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
@@ -80,7 +83,17 @@ Application::Application() :
 		style.Colors[ImGuiCol_WindowBg].w = 1.0f;
 	}
 
-	bus = new Bus;
+	try
+	{
+		screen = new Screen;
+	}
+	catch(const std::runtime_error& err)
+	{
+		LOG_CORE_ERROR("Screen creation failed");
+		throw err;
+	}
+
+	bus = new Bus(screen);
 	debugger = new Debugger(bus);
 }
 
@@ -96,12 +109,35 @@ Application::~Application()
 
 bool Application::Update()
 {
+	if (window->GetScale() != scale)
+		window->SetScale(scale);
+
 	glfwPollEvents();
 
 	if (!debugger->Update())
 		return false;
 
 	window->Begin();
+	screen->Render();
+
+	if (ImGui::BeginMainMenuBar())
+	{
+		if (ImGui::BeginMenu("Screen"))
+		{
+			if (ImGui::BeginMenu("Scale"))
+			{
+				ImGui::RadioButton("x1", &scale, 1);
+				ImGui::RadioButton("x2", &scale, 2);
+				ImGui::RadioButton("x3", &scale, 3);
+				ImGui::RadioButton("x4", &scale, 4);
+				ImGui::EndMenu();
+			}
+			ImGui::EndMenu();
+		}
+
+		ImGui::EndMainMenuBar();
+	}
+
 	debugger->Render();
 	window->End();
 

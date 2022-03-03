@@ -2,9 +2,12 @@
 #include "Log.hpp"
 #include "Bus.hpp"
 
-PPU::PPU(Bus* bus) :
-	bus(bus), ppuctrl{0}, ppustatus{0}
+#include "gfx/Screen.hpp"
+
+PPU::PPU(Bus* bus, Screen* screen) :
+	bus(bus), screen(screen), ppuctrl{ 0 }, ppustatus{ 0 }
 {
+	LOG_CORE_INFO("{0}", sizeof(VRAMAddress));
 }
 
 void PPU::Powerup()
@@ -57,38 +60,6 @@ void PPU::Tick()
 			y = 0;
 	}
 
-	current.CoarseX++;
-	if (current.CoarseX > 31)
-	{
-		current.CoarseX = 0;
-		current.NametableSel ^= 0x1;
-	}
-
-	if (x == 256)
-	{
-		if (current.FineY < 7)
-		{
-			current.FineY++;
-		}
-		else
-		{
-			current.FineY = 0;
-			if (current.CoarseY == 29)
-			{
-				current.CoarseY = 0;
-				current.NametableSel ^= 0x2;
-			}
-			else if (current.CoarseY == 31)
-			{
-				current.CoarseY = 0;
-			}
-			else
-			{
-				current.CoarseY++;
-			}
-		}
-	}
-
 	UpdateState();
 
 	// On this cycle the VBlankStarted bit is set in the ppustatus
@@ -113,6 +84,14 @@ void PPU::Tick()
 		PerformRenderAction();
 	}
 	
+	if (x < 256 && y < 240)
+	{
+		uint8_t xOffset = 7 - fineX;
+
+		uint8_t color = (((patternTableHi >> xOffset) & 0x1) << 1) | ((patternTableLo >> xOffset) & 0x1);
+		color *= 80;
+		screen->SetPixel(x, y, { color, color, color});
+	}
 }
 
 Byte PPU::ReadRegister(Byte id)
@@ -283,6 +262,12 @@ void PPU::UpdateState()
 void PPU::PerformRenderAction()
 {
 	if (cycleType == CycleType::Idle)
+	{
+		fineX = 0;
+		return;
+	}
+
+	if (cycleType == CycleType::SpriteFetching)
 		return;
 
 	if (memoryAccessLatch == 1)
@@ -302,16 +287,49 @@ void PPU::PerformRenderAction()
 			break;
 
 		case FetchingPhase::PatternTableLo:
-			patternTableLo = Read(ppuctrl.Flag.BackgrPatternTableAddr | nametableByte);
+			patternTableLo = Read(((Word)ppuctrl.Flag.BackgrPatternTableAddr << 12) | ((Word)nametableByte << 4) + current.FineY);
 			fetchPhase = FetchingPhase::PatternTableHi;
 			break;
 
 		case FetchingPhase::PatternTableHi:
-			patternTableLo = Read((ppuctrl.Flag.BackgrPatternTableAddr | nametableByte) + 8);
+			patternTableLo = Read((((Word)ppuctrl.Flag.BackgrPatternTableAddr << 12) | ((Word)nametableByte << 4)) + 8 + current.FineY);
+
+			current.CoarseX++;
+			if (x == 256)
+			{
+				current.CoarseX = temporary.CoarseX;
+				current.NametableSel ^= 0x1;
+
+				if (current.FineY < 7)
+				{
+					current.FineY++;
+				}
+				else
+				{
+					current.FineY = temporary.FineY;
+					if (current.CoarseY == 29)
+					{
+						current.CoarseY = temporary.CoarseY;
+						current.NametableSel ^= 0x2;
+					}
+					else if (current.CoarseY == 31)
+					{
+						current.CoarseY = temporary.CoarseY;
+					}
+					else
+					{
+						current.CoarseY++;
+					}
+				}
+			}
+
 			fetchPhase = FetchingPhase::NametableByte;
 			break;
 		}
 	}
 
+	fineX++;
+	if (fineX >= 8)
+		fineX = 0;
 	memoryAccessLatch = 1 - memoryAccessLatch;
 }

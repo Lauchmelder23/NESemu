@@ -10,6 +10,7 @@
 Window::Window(uint16_t width, uint16_t height, const std::string& title) :
 	handle(nullptr)
 {
+	glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
 	handle = glfwCreateWindow(width, height, title.c_str(), nullptr, nullptr);
 	if (handle == nullptr)
 	{
@@ -26,6 +27,12 @@ Window::~Window()
 {
 	if(handle)
 		glfwDestroyWindow(handle);
+}
+
+void Window::SetScale(int scale)
+{
+	glfwSetWindowSize(handle, 256 * scale, 240 * scale + 20);
+	glViewport(0, 0, 256 * scale, 240 * scale);
 }
 
 void Window::Begin()

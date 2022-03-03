@@ -34,7 +34,7 @@ void ControllerPortViewer::OnRender()
 			ImGui::Separator();
 
 			ImGui::InputScalar("Shift Register", ImGuiDataType_U8, &controller->outRegister, (const void*)0, (const void*)0, "%02X", ImGuiInputTextFlags_CharsHexadecimal);
-			
+
 			if (ImGui::BeginTable(controllerName.c_str(), 8))
 			{
 				for(int i = 0; i < 8; i++)
@@ -52,6 +52,8 @@ void ControllerPortViewer::OnRender()
 				ImGui::EndTable();
 			}
 		}
+
+		counter++;
 	}
 
 	ImGui::End();

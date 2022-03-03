@@ -28,6 +28,9 @@ Byte ControllerPort::Write(Word addr, Byte val)
 
 Byte ControllerPort::Read(Word addr)
 {
+	if (connectedDevices[addr & 1] == nullptr)
+		return 0xFF;
+
 	return connectedDevices[addr & 1]->CLK();
 }
 

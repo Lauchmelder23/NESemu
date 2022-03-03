@@ -5,8 +5,8 @@
 
 #include "controllers/StandardController.hpp"
 
-Bus::Bus() :
-	cpu(this), ppu(this), cartridge(this)
+Bus::Bus(Screen* screen) :
+	cpu(this), ppu(this, screen), cartridge(this)
 {
 	LOG_CORE_INFO("Allocating RAM");
 	RAM = std::vector<Byte>(0x800);
@@ -15,7 +15,7 @@ Bus::Bus() :
 	VRAM = std::vector<Byte>(0x800);
 
 	LOG_CORE_INFO("Inserting cartridge");
-	cartridge.Load("roms/nestest.nes");
+	cartridge.Load("roms/donkeykong.nes");
 
 	LOG_CORE_INFO("Powering up CPU");
 	cpu.Powerup();

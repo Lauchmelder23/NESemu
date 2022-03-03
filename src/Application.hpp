@@ -3,6 +3,7 @@
 class Bus;
 class Window;
 class Debugger;
+class Screen;
 
 /**
  * @brief Contains the program loop and invokes other objects update functions.
@@ -26,7 +27,10 @@ private:
 	bool Update();
 
 private:
+	int scale = 3;
+
 	Window* window;
 	Bus* bus;
+	Screen* screen;
 	Debugger* debugger;
 };

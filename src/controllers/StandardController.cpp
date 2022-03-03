@@ -22,9 +22,4 @@ void StandardController::OUT(PortLatch latch)
 	pressed.Buttons.Down	= Input::IsKeyDown(GLFW_KEY_DOWN);
 	pressed.Buttons.Left	= Input::IsKeyDown(GLFW_KEY_LEFT);
 	pressed.Buttons.Right	= Input::IsKeyDown(GLFW_KEY_RIGHT);
-
-	if (pressed.Raw != 0)
-		volatile int jdfi = 3;
-
-	outRegister = pressed.Raw;
 }

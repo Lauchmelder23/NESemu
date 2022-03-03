@@ -3,6 +3,7 @@
 #include "Types.hpp"
 
 class Bus;
+class Screen;
 
 enum class ScanlineType
 {
@@ -33,10 +34,10 @@ union VRAMAddress
 {
 	struct
 	{
-		Byte CoarseX : 5;
-		Byte CoarseY : 5;
-		Byte NametableSel : 2;
-		Byte FineY : 3;
+		Word CoarseX : 5;
+		Word CoarseY : 5;
+		Word NametableSel : 2;
+		Word FineY : 3;
 	};
 
 	Word Raw;
@@ -50,7 +51,7 @@ class PPU
 	friend class PPUWatcher;
 
 public:
-	PPU(Bus* bus);
+	PPU(Bus* bus, Screen* screen);
 
 	/**
 	 * @brief Powerup PPU.
@@ -177,4 +178,5 @@ private:
 	uint8_t memoryAccessLatch = 0;
 	bool isFrameDone = false;
 	Bus* bus;
+	Screen* screen;
 };

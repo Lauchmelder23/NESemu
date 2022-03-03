@@ -23,7 +23,7 @@ class Bus
 	friend class NametableViewer;
 
 public:
-	Bus();
+	Bus(Screen* screen);
 
 	/**
 	 * @brief Reboot the NES.
