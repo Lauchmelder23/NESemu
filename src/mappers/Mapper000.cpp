@@ -21,7 +21,7 @@ Byte Mapper000::ReadCPU(Word addr)
 {
 	if (0x8000 <= addr && addr <= 0xFFFF)
 	{
-		return PRG_ROM[addr & (prgBanks * 0x4000 - 1)];
+		return PRG_ROM[addr & (0x4000 * prgBanks - 1)];
 	}
 
 	return 0x00;

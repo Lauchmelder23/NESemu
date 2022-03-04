@@ -6,6 +6,7 @@
 class Mapper
 {
 	friend class Disassembler;
+	friend class PatternTableViewer;
 
 public:
 	virtual Byte ReadCPU(Word addr) = 0;

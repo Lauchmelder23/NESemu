@@ -184,7 +184,10 @@ void PPU::Tick()
 			volatile int dfjk = 3;
 
 		screen->SetPixel(x, y, colorTable[colorVal]);
+	}
 
+	if (cycleType == CycleType::Fetching || cycleType == CycleType::PreFetching)
+	{
 		loTile.Raw <<= 1;
 		hiTile.Raw <<= 1;
 		loAttribute.Raw <<= 1;

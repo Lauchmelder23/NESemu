@@ -10,6 +10,7 @@
 #include "Disassembler.hpp"
 #include "MemoryViewer.hpp"
 #include "NametableViewer.hpp"
+#include "PatternTableViewer.hpp"
 #include "ControllerPortViewer.hpp"
 #include "Palettes.hpp"
 
@@ -26,6 +27,7 @@ Debugger::Debugger(Bus* bus) :
 
 	windows.push_back(new MemoryViewer(this, bus));
 	windows.push_back(new NametableViewer(this, bus));
+	windows.push_back(new PatternTableViewer(this, bus->cartridge.GetMapper()));
 	windows.push_back(new ControllerPortViewer(this, &bus->controllerPort));
 	windows.push_back(new Palettes(this, bus));
 }

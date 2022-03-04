@@ -68,8 +68,6 @@ void NametableViewer::OnRender()
 			return;
 		}
 
-		
-
 		float smallerSize = std::min(ImGui::GetWindowWidth(), ImGui::GetWindowHeight()) - 20.0f;
 		if (smallerSize < 40.0f)
 			smallerSize = 40.0f;

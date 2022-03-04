@@ -1,6 +1,5 @@
 #pragma once
 
-#include <array>
 #include "DebugWindow.hpp"
 
 class Bus;
@@ -17,6 +16,6 @@ public:
 private:
 	Bus* bus;
 
-	std::array<uint32_t, 4> backgroundPalettes;
-	std::array<uint32_t, 4> spritePalettes;
+	uint32_t backgroundPalettes;
+	uint32_t spritePalettes;
 };
