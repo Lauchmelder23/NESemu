@@ -8,7 +8,6 @@ Mapper000::Mapper000(const Header& header, std::ifstream& ifs) :
 	Mapper(header)
 {
 	LOG_CORE_INFO("Allocating PRG ROM");
-	prgBanks = header.PrgROM;
 	PRG_ROM = std::vector<Byte>(0x4000 * prgBanks);
 	ifs.read((char*)PRG_ROM.data(), 0x4000 * prgBanks);
 

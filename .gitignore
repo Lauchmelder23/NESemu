@@ -6,3 +6,5 @@ out/
 
 *.nes
 !roms/nestest.nes
+!roms/cpu_dummy_reads.nes
+!roms/all_instrs.nes

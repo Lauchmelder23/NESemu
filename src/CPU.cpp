@@ -87,6 +87,7 @@ void CPU::CreateInstructionTable()
 	InstructionTable[0x08] = NEW_INSTRUCTION(PHP, IMP, 1, 3);
 	InstructionTable[0x09] = NEW_INSTRUCTION(ORA, IMM, 2, 2);
 	InstructionTable[0x0A] = NEW_INSTRUCTION(ASL, ACC, 1, 2);
+	InstructionTable[0x0B] = NEW_ILLGL_INSTR(ANC, IMM, 2, 2);
 	InstructionTable[0x0D] = NEW_INSTRUCTION(ORA, ABS, 3, 4);
 	InstructionTable[0x0C] = NEW_ILLGL_INSTR(NOP, ABS, 3, 4);
 	InstructionTable[0x0E] = NEW_INSTRUCTION(ASL, ABS, 3, 6);
@@ -119,6 +120,7 @@ void CPU::CreateInstructionTable()
 	InstructionTable[0x28] = NEW_INSTRUCTION(PLP, IMP, 1, 4);
 	InstructionTable[0x29] = NEW_INSTRUCTION(AND, IMM, 2, 2);
 	InstructionTable[0x2A] = NEW_INSTRUCTION(ROL, ACC, 1, 2);
+	InstructionTable[0x2B] = NEW_ILLGL_INSTR(ANC, IMM, 2, 2);
 	InstructionTable[0x2C] = NEW_INSTRUCTION(BIT, ABS, 3, 4);
 	InstructionTable[0x2D] = NEW_INSTRUCTION(AND, ABS, 3, 4);
 	InstructionTable[0x2E] = NEW_INSTRUCTION(ROL, ABS, 3, 6);
@@ -163,6 +165,7 @@ void CPU::CreateInstructionTable()
 	InstructionTable[0x55] = NEW_INSTRUCTION(EOR, ZPX, 2, 4);
 	InstructionTable[0x56] = NEW_INSTRUCTION(LSR, ZPX, 2, 6);
 	InstructionTable[0x57] = NEW_ILLGL_INSTR(SRE, ZPX, 2, 6);
+	InstructionTable[0x58] = NEW_INSTRUCTION(CLI, IMP, 1, 2);
 	InstructionTable[0x59] = NEW_INSTRUCTION(EOR, ABY, 3, 4);
 	InstructionTable[0x5A] = NEW_ILLGL_INSTR(NOP, IMP, 1, 2);
 	InstructionTable[0x5B] = NEW_ILLGL_INSTR(SRE, ABY, 3, 7);
@@ -181,6 +184,7 @@ void CPU::CreateInstructionTable()
 	InstructionTable[0x68] = NEW_INSTRUCTION(PLA, IMP, 1, 4);
 	InstructionTable[0x69] = NEW_INSTRUCTION(ADC, IMM, 2, 2);
 	InstructionTable[0x6A] = NEW_INSTRUCTION(ROR, ACC, 1, 2);
+	InstructionTable[0x6B] = NEW_ILLGL_INSTR(ARR, IMM, 2, 2);
 	InstructionTable[0x6C] = NEW_INSTRUCTION(JMP, IND, 3, 5);
 	InstructionTable[0x6D] = NEW_INSTRUCTION(ADC, ABS, 3, 4);
 	InstructionTable[0x6E] = NEW_INSTRUCTION(ROR, ABS, 3, 6);
@@ -228,7 +232,9 @@ void CPU::CreateInstructionTable()
 	InstructionTable[0x98] = NEW_INSTRUCTION(TYA, IMP, 1, 2);
 	InstructionTable[0x99] = NEW_INSTRUCTION(STA, ABY, 3, 5);
 	InstructionTable[0x9A] = NEW_INSTRUCTION(TXS, IMP, 1, 2);
+	InstructionTable[0x9C] = NEW_ILLGL_INSTR(SHY, ABX, 3, 5);
 	InstructionTable[0x9D] = NEW_INSTRUCTION(STA, ABX, 3, 5);
+	InstructionTable[0x9E] = NEW_ILLGL_INSTR(SHX, ABY, 3, 5);
 
 	InstructionTable[0xA0] = NEW_INSTRUCTION(LDY, IMM, 2, 2);
 	InstructionTable[0xA1] = NEW_INSTRUCTION(LDA, IDX, 2, 6);
@@ -273,6 +279,7 @@ void CPU::CreateInstructionTable()
 	InstructionTable[0xC8] = NEW_INSTRUCTION(INY, IMP, 1, 2);
 	InstructionTable[0xC9] = NEW_INSTRUCTION(CMP, IMM, 2, 2);
 	InstructionTable[0xCA] = NEW_INSTRUCTION(DEX, IMP, 1, 2);
+	InstructionTable[0xCB] = NEW_ILLGL_INSTR(SBX, IMM, 2, 2);
 	InstructionTable[0xCC] = NEW_INSTRUCTION(CPY, ABS, 3, 4);
 	InstructionTable[0xCD] = NEW_INSTRUCTION(CMP, ABS, 3, 4);
 	InstructionTable[0xCE] = NEW_INSTRUCTION(DEC, ABS, 3, 6);
@@ -330,7 +337,7 @@ void CPU::CreateInstructionTable()
 
 void CPU::Powerup()
 {
-	status.Raw = 0x34;
+	status.Raw = 0x24;
 	acc = 0;
 	idx = 0;
 	idy = 0;
@@ -362,7 +369,7 @@ void CPU::IRQ()
 
 	Push(pc.Bytes.hi);
 	Push(pc.Bytes.lo);
-	Push(status.Raw | (0x20 << 4));
+	Push(status.Raw | (0x1 << 5));
 
 	status.Flag.InterruptDisable = 1;
 	pc.Bytes.lo = Read(0xFFFE);
@@ -373,7 +380,7 @@ void CPU::NMI()
 {
 	Push(pc.Bytes.hi);
 	Push(pc.Bytes.lo);
-	Push(status.Raw | (0x20 << 4));
+	Push(status.Raw | (0x1 << 5));
 
 	status.Flag.InterruptDisable = 1;
 	pc.Bytes.lo = Read(0xFFFA);
@@ -515,6 +522,16 @@ void CPU::ALR()
 	additionalCycles = 0;
 }
 
+void CPU::ANC()
+{
+	FetchValue();
+	acc &= fetchedVal;
+
+	CHECK_NEGATIVE(acc);
+	CHECK_ZERO(acc);
+	status.Flag.Carry = ((acc & 0x80) == 0x80);
+}
+
 void CPU::AND()
 {
 	FetchValue();
@@ -535,6 +552,20 @@ void CPU::ANE()
 	CHECK_ZERO(result);
 
 	additionalCycles = 0;
+}
+
+void CPU::ARR()
+{
+	FetchValue();
+	acc &= fetchedVal;
+
+	acc >>= 1;
+	acc |= (status.Flag.Carry << 7);
+
+	CHECK_NEGATIVE(acc);
+	CHECK_ZERO(acc);
+	status.Flag.Overflow = ((acc >> 6) & 0x1) ^ ((acc >> 5) & 0x1);
+	status.Flag.Carry = ((acc >> 6) & 0x1);
 }
 
 void CPU::ASL()
@@ -650,7 +681,7 @@ void CPU::BRK()
 	pc.Raw++;
 	Push(pc.Bytes.hi);
 	Push(pc.Bytes.lo);
-	Push(status.Raw | (0x30 << 4));
+	Push(status.Raw | (0x3 << 4));
 
 	status.Flag.InterruptDisable = 1;
 	pc.Bytes.lo = Read(0xFFFE);
@@ -894,12 +925,11 @@ void CPU::LSR()
 void CPU::LXA()
 {
 	FetchValue();
-	Byte result = (acc & 0xFF) & fetchedVal;
-	acc = result;
-	idx = result;
+	acc = fetchedVal;
+	idx = acc;
 
-	CHECK_NEGATIVE(result);
-	CHECK_ZERO(result);
+	CHECK_NEGATIVE(acc);
+	CHECK_ZERO(acc);
 
 	additionalCycles = 0;
 }
@@ -925,7 +955,7 @@ void CPU::PHA()
 
 void CPU::PHP()
 {
-	Push(status.Raw | (0x30 << 4));
+	Push(status.Raw | (0x3 << 4));
 }
 
 void CPU::PLA()
@@ -1042,6 +1072,18 @@ void CPU::SAX()
 	Write(absoluteAddress.Raw, acc & idx);
 }
 
+void CPU::SBX()
+{
+	FetchValue();
+	Word result = (acc & idx) - fetchedVal;
+
+	CHECK_NEGATIVE(result);
+	CHECK_ZERO(result);
+	status.Flag.Carry = ((acc & idx) >= fetchedVal);
+
+	idx = result;
+}
+
 void CPU::SBC()
 {
 	FetchValue();
@@ -1068,6 +1110,24 @@ void CPU::SED()
 void CPU::SEI()
 {
 	status.Flag.InterruptDisable = 1;
+}
+
+void CPU::SHX()
+{
+	Byte result = idx & (rawAddress.Bytes.hi + 1);
+	absoluteAddress.Bytes.hi = result;
+	Write(absoluteAddress.Raw, result);
+
+	additionalCycles = 0;
+}
+
+void CPU::SHY()
+{
+	Byte result = idy & (rawAddress.Bytes.hi + 1);
+	absoluteAddress.Bytes.hi = result;
+	Write(absoluteAddress.Raw, result);
+
+	additionalCycles = 0;
 }
 
 void CPU::SLO()

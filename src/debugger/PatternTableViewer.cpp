@@ -63,6 +63,8 @@ void PatternTableViewer::DecodePatternTable(int index, std::vector<Color>& buffe
 {
 	// uint8_t stride = 128;
 	Word baseAddr = 0x1000 * index;
+	if (baseAddr >= mapper->CHR_ROM.size())
+		return;
 
 	for (int y = 0; y < 16; y++)
 	{

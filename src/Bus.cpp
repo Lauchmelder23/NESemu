@@ -204,6 +204,9 @@ void Bus::WritePPU(Word addr, Byte val)
 		if(cartridge.MapCIRAM(addr))
 			cartridge.WriteVRAM(addr, val);
 
+		if (val != 0x00)
+			volatile int jfkd = 3;
+
 		VRAM[addr & 0xFFF] = val;
 	}
 	else if (0x3F00 <= addr && addr < 0x4000)

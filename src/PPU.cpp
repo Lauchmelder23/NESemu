@@ -157,7 +157,7 @@ void PPU::Tick()
 			current.NametableSel |= temporary.NametableSel & 0x1;
 		}
 
-		if (scanlineType == ScanlineType::PreRender && x >= 280 && x <= 304)
+		if (scanlineType == ScanlineType::PreRender && ppumask.Flag.ShowBackground && x >= 280 && x <= 304)
 		{
 			current.FineY = temporary.FineY;
 			current.CoarseY = temporary.CoarseY;
@@ -180,10 +180,9 @@ void PPU::Tick()
 			palette = 0x00;
 
 		uint8_t colorVal = Read(0x3F00 | (palette << 2) | color);
-		if (colorVal != 0x0f)
-			volatile int dfjk = 3;
-
-		screen->SetPixel(x, y, colorTable[colorVal]);
+		
+		if(ppumask.Flag.ShowBackground)
+			screen->SetPixel(x, y, colorTable[colorVal]);
 	}
 
 	if (cycleType == CycleType::Fetching || cycleType == CycleType::PreFetching)
@@ -197,21 +196,23 @@ void PPU::Tick()
 
 Byte PPU::ReadRegister(Byte id)
 {
+	Byte data = 0;
+
 	// Reading from a register fills the latch with the contents of the register
 	// Write-only regs don't fill the latch
 	// But in any case, the latch contents are returned
 	switch (id)
 	{
 	case 0:
-		latch = ppuctrl.Raw;
+		data = ppuctrl.Raw;
 		break;
 
 	case 1:
-		latch = ppumask.Raw;
+		data = ppumask.Raw;
 		break;
 
 	case 2:
-		latch =  ppustatus.Raw;
+		data = ppustatus.Raw;
 		ppustatus.Flag.VBlankStarted = 0;
 		addressLatch = 0;
 		break;
@@ -223,7 +224,12 @@ Byte PPU::ReadRegister(Byte id)
 		break;
 
 	case 7:
+		data = latch;
 		latch = bus->ReadPPU(ppuaddr.Raw);
+
+		if (ppuaddr.Raw >= 0x3F00)
+			data = latch;
+
 		ppuaddr.Raw += (ppuctrl.Flag.VRAMAddrIncrement ? 32 : 1);
 		break;
 	
@@ -232,7 +238,7 @@ Byte PPU::ReadRegister(Byte id)
 		break;
 	}
 
-	return latch;
+	return data;
 }
 
 void PPU::WriteRegister(Byte id, Byte val)

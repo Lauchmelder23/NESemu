@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vector>
+#include "../Log.hpp"
 #include "Types.hpp"
 
 class Mapper
@@ -20,7 +21,7 @@ public:
 	 * enforce nametable mirroring, or even completely remap the address
 	 * to internal VRAM
 	 */
-	bool MapCIRAM(Word& addr)
+	virtual bool MapCIRAM(Word& addr)
 	{
 		if (header.Flag6.IgnoreMirroringBit)
 			return true;
@@ -42,10 +43,14 @@ public:
 	virtual void WriteVRAM(Word addr, Byte val) {}
 
 protected:
-	Mapper(const Header& header) : header(header) {}
+	Mapper(const Header& header) : header(header), prgBanks(header.PrgROM), chrBanks(header.ChrROM)
+	{
+	}
 
 protected:
 	std::vector<Byte> PRG_ROM;
 	std::vector<Byte> CHR_ROM;
+	Byte prgBanks = 0;
+	Byte chrBanks = 0;
 	Header header;
 };

@@ -116,12 +116,20 @@ private:
 	/**
 	 * @brief Push a byte to the stack
 	 */
-	inline void Push(Byte val) { Write(0x0100 | (sp--), val); }
+	inline void Push(Byte val) 
+	{ 
+		Write(0x0100 | sp, val); 
+		sp--; 
+	}
 
 	/**
 	 * @brief Pop a byte from the stack.
 	 */
-	inline Byte Pop() { return Read(0x0100 | (++sp)); }
+	inline Byte Pop() 
+	{ 
+		sp++;  
+		return Read(0x0100 | sp); 
+	}
 
 
 	/**
@@ -166,8 +174,10 @@ private:	// Stuff regarding instructions
 	// They simply perform the operations needed
 	void ADC();
 	void ALR();
+	void ANC();
 	void AND();
 	void ANE();
+	void ARR();
 	void ASL();
 	void BCC();
 	void BCS();
@@ -216,10 +226,13 @@ private:	// Stuff regarding instructions
 	void RTI();
 	void RTS();
 	void SAX();
+	void SBX();
 	void SBC();
 	void SEC();
 	void SED();
 	void SEI();
+	void SHX();
+	void SHY();
 	void SLO();
 	void SRE();
 	void STA();
@@ -237,7 +250,7 @@ private:	// CPU internals
 	Byte acc;
 	Byte idx, idy;
 	Address pc;
-	Word sp;
+	Byte sp;
 	StatusFlag status;
 
 	Instruction* currentInstruction = nullptr;
