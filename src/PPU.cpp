@@ -404,6 +404,13 @@ void PPU::PerformRenderAction()
 			loTile.Lo = patternTableLo;
 			hiTile.Lo = patternTableHi;
 
+			Byte attributeHalfNybble = attributeTableByte;
+			attributeHalfNybble >>= (((current.CoarseX >> 1) % 2) ? 2 : 0);
+			attributeHalfNybble >>= (((current.CoarseY >> 1) % 2) ? 4 : 0);
+
+			loAttribute.Lo = ((attributeHalfNybble & 1) ? 0xFF : 0x00);
+			hiAttribute.Lo = ((attributeHalfNybble & 2) ? 0xFF : 0x00);
+
 			current.CoarseX++;
 			if (x == 256)
 			{
@@ -425,13 +432,6 @@ void PPU::PerformRenderAction()
 					}
 				}
 			}
-
-			Byte attributeHalfNybble = attributeTableByte;
-			attributeHalfNybble >>= ((current.CoarseX % 2) ? 2 : 0);
-			attributeHalfNybble >>= ((current.CoarseY % 2) ? 0 : 4);
-
-			loAttribute.Lo = ((attributeHalfNybble & 1) ? 0xFF : 0x00);
-			hiAttribute.Lo = ((attributeHalfNybble & 2) ? 0xFF : 0x00);
 
 			fetchPhase = FetchingPhase::NametableByte;
 			break;
