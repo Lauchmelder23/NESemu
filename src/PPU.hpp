@@ -55,12 +55,29 @@ union ShiftRegister
 	Word Raw;
 };
 
+struct Sprite
+{
+	Byte Lo, Hi;
+	Byte Latch;
+	Byte Counter;
+	Byte FineX;
+};
+
+struct Pixel
+{
+	Byte color;
+	Byte palette;
+	Byte priority;
+	bool isZeroSprite;
+};
+
 /**
  * @brief The PPU of the NES.
  */
 class PPU
 {
 	friend class PPUWatcher;
+	friend class OAMViewer;
 
 public:
 	static const std::vector<Color> colorTable;
@@ -95,6 +112,9 @@ public:
 	 */
 	void WriteRegister(Byte id, Byte val);
 
+	Byte ReadOAM(Byte offset);
+	void WriteOAM(Byte offset, Byte val);
+
 	/**
 	 * @brief Check whether the PPU finished rendering a frame.
 	 * Returns true if the VBlankStart cycle was hit previously. The function resets
@@ -114,7 +134,13 @@ private:
 	void Write(Word addr, Byte val);
 
 	void UpdateState();
-	void PerformRenderAction();
+	void EvaluateBackgroundTiles();
+	void EvaluateSprites();
+
+	Pixel GetBackgroundPixel();
+	Pixel GetSpritePixel();
+
+	Color MultiplexPixel(Pixel background, Pixel sprite);
 
 private: // Registers
 
@@ -171,6 +197,7 @@ private: // Registers
 	} ppuscroll;
 
 	Address ppuaddr;
+	Byte oamaddr;
 
 	VRAMAddress current{ 0 };
 	VRAMAddress temporary{ 0 };
@@ -189,6 +216,13 @@ private: // Registers
 	ShiftRegister hiTile{ 0 };
 	ShiftRegister hiAttribute{ 0 };
 	ShiftRegister loAttribute{ 0 };
+
+	std::vector<Byte> OAM;
+	std::vector<Byte> secondaryOAM;
+	std::vector<Sprite> sprites;
+	Byte OAMOverrideSignal = 0x00;
+	Byte freeSecondaryOAMSlot = 0x00;
+	Byte currentlyEvaluatedSprite = 0x00;
 
 private:
 	ScanlineType scanlineType;

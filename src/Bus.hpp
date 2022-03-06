@@ -47,6 +47,8 @@ public:
 	 */
 	uint8_t Tick();
 
+	void DMATick();
+
 	void PPUTick();
 
 	/**
@@ -94,6 +96,11 @@ private:
 	APU apu;
 	Cartridge cartridge;
 	ControllerPort controllerPort;
+
+	Byte preDMACycles = 0;
+	Byte DMACyclesLeft = 0;
+	Byte DMAPage = 0;
+	Byte DMALatch = 0;
 
 	uint8_t ppuClock = 0;
 };

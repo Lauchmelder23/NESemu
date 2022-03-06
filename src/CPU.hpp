@@ -107,6 +107,8 @@ public:
 	 */
 	void NMI();
 
+	uint64_t GetTotalCycles() { return totalCycles; }
+
 private:
 	/**
 	 * @brief Create a lookup table of instructions.

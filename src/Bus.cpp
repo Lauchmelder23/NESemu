@@ -48,7 +48,17 @@ uint8_t Bus::Tick()
 {
 	controllerPort.Tick();
 
-	uint8_t result = cpu.Tick();
+	uint8_t result = 0x00;
+	if (DMACyclesLeft == 0)
+	{
+		result = cpu.Tick();
+	}
+	else
+	{
+		DMATick();
+		result = DMACyclesLeft;
+	}
+
 
 	// 3 ppu ticks per cpu tick
 	ppu.Tick();
@@ -60,6 +70,25 @@ uint8_t Bus::Tick()
 	apu.Tick();
 
 	return result;
+}
+
+void Bus::DMATick()
+{
+	if (preDMACycles > 0)
+	{
+		preDMACycles--;
+		return;
+	}
+
+	if (DMALatch != 0)
+	{
+		Byte data = ReadCPU(((Word)DMAPage << 8) | (0xFF - DMACyclesLeft));
+		ppu.WriteRegister(0x2004, data);
+
+		DMACyclesLeft--;
+	}
+
+	DMALatch = 1 - DMALatch;
 }
 
 void Bus::PPUTick()
@@ -125,6 +154,9 @@ Byte Bus::ReadCPU(Word addr)
 	{
 		switch (addr)
 		{
+		case 0x4014:
+			return 0x00;
+
 		case 0x4016:
 		case 0x4017:
 			return controllerPort.Read(addr);
@@ -180,6 +212,12 @@ void Bus::WriteCPU(Word addr, Byte val)
 	{
 		switch (addr)
 		{
+		case 0x4014:
+			DMAPage = val;
+			DMACyclesLeft = 0xFF;
+			preDMACycles = 1 + (cpu.GetTotalCycles() % 2);
+			return;
+
 		case 0x4016:
 			controllerPort.Write(addr, val);
 			break;
@@ -201,11 +239,8 @@ void Bus::WritePPU(Word addr, Byte val)
 	}
 	else if (0x2000 <= addr && addr < 0x3F00)
 	{
-		if(cartridge.MapCIRAM(addr))
+		if (cartridge.MapCIRAM(addr))
 			cartridge.WriteVRAM(addr, val);
-
-		if (val != 0x00)
-			volatile int jfkd = 3;
 
 		VRAM[addr & 0xFFF] = val;
 	}

@@ -122,6 +122,11 @@ void PPUWatcher::OnRender()
 				ImGui::Text("$%04X", ppu->ppuctrl.Flag.BackgrPatternTableAddr ? 0x1000 : 0x0000);
 
 				ImGui::TableNextColumn();
+				ImGui::Text("Sprite Size");
+				ImGui::TableNextColumn();
+				ImGui::Text(ppu->ppuctrl.Flag.SpriteSize ? "8x16" : "8x8");
+
+				ImGui::TableNextColumn();
 				ImGui::Text("Master/Slave");
 				ImGui::TableNextColumn();
 				ImGui::Text(ppu->ppuctrl.Flag.MasterSlaveSelect ? "Output to EXT" : "Read from EXT");
