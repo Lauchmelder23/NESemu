@@ -280,7 +280,7 @@ void PPU::WriteRegister(Byte id, Byte val)
 		{
 			ppuscroll.x = val;
 			temporary.CoarseX = (val >> 3);
-			fineX = val & 0x3;
+			fineX = val & 0x7;
 		}
 		else
 		{
@@ -394,7 +394,6 @@ void PPU::EvaluateBackgroundTiles()
 {
 	if (cycleType == CycleType::Idle)
 	{
-		fineX = 0;
 		return;
 	}
 
@@ -462,9 +461,6 @@ void PPU::EvaluateBackgroundTiles()
 		}
 	}
 
-	fineX++;
-	if (fineX >= 8)
-		fineX = 0;
 	memoryAccessLatch = 1 - memoryAccessLatch;
 }
 
@@ -597,10 +593,12 @@ Pixel PPU::GetBackgroundPixel()
 	if (!ppumask.Flag.ShowBackground)
 		return returnValue;
 
-	Byte loBit = (loTile.Hi & 0x80) >> 7;
-	Byte hiBit = (hiTile.Hi & 0x80) >> 7;
-	Byte loAttrBit = (loAttribute.Hi & 0x80) >> 7;
-	Byte hiAttrBit = (hiAttribute.Hi & 0x80) >> 7;
+	Byte shiftAmount = 7 - fineX;
+
+	Byte loBit = (loTile.Hi >> shiftAmount) & 0x1;
+	Byte hiBit = (hiTile.Hi >> shiftAmount) & 0x1;
+	Byte loAttrBit = (loAttribute.Hi >> shiftAmount) & 0x1;
+	Byte hiAttrBit = (hiAttribute.Hi >> shiftAmount) & 0x1;;
 
 	returnValue.color = (hiBit << 1) | loBit;
 	returnValue.palette = (hiAttrBit << 1) | loAttrBit;
