@@ -27,6 +27,10 @@ public:
 	{
 		Byte output = outRegister & 1;
 		outRegister >>= 1;
+
+		if (output != 0)
+			volatile int jdfk = 3;
+
 		return (output << outPin);
 	}
 

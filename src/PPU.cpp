@@ -138,6 +138,8 @@ void PPU::Tick()
 	if (y == 241 && x == 1)
 	{
 		// Set flag and send NMI if necessary
+		// std::fill(OAM.begin(), OAM.end(), 0x00);
+
 		ppustatus.Flag.VBlankStarted = 1;
 		if (ppuctrl.Flag.VBlankNMI)
 			bus->NMI();
@@ -175,6 +177,27 @@ void PPU::Tick()
 
 	}
 	
+	if (x == 256)
+	{
+		current.FineY++;
+		if (current.FineY == 0)
+		{
+			if (current.CoarseY == 29)
+			{
+				current.CoarseY = 0;
+				current.NametableSel ^= 0x2;
+			}
+			else if (current.CoarseY == 31)
+			{
+				current.CoarseY = 0;
+			}
+			else
+			{
+				current.CoarseY++;
+			}
+		}
+	}
+
 	if (x < 256 && y < 240)
 	{
 		Pixel bgPixel = GetBackgroundPixel();
@@ -434,26 +457,14 @@ void PPU::EvaluateBackgroundTiles()
 			loAttribute.Lo = ((attributeHalfNybble & 1) ? 0xFF : 0x00);
 			hiAttribute.Lo = ((attributeHalfNybble & 2) ? 0xFF : 0x00);
 
-			current.CoarseX++;
-			if (x == 256)
+			if (current.CoarseX == 0x1F)
 			{
-				current.FineY++;
-				if (current.FineY == 0)
-				{
-					if (current.CoarseY == 29)
-					{
-						current.CoarseY = 0;
-						current.NametableSel ^= 0x2;
-					}
-					else if (current.CoarseY == 31)
-					{
-						current.CoarseY = 0;
-					}
-					else
-					{
-						current.CoarseY++;
-					}
-				}
+				current.NametableSel ^= 0x1;
+				current.CoarseX = 0x00;
+			}
+			else
+			{
+				current.CoarseX++;
 			}
 
 			fetchPhase = FetchingPhase::NametableByte;
@@ -474,7 +485,7 @@ void PPU::EvaluateSprites()
 
 	if (scanlineType != ScanlineType::PreRender)
 	{
-		OAMOverrideSignal = (x <= 64);
+		OAMOverrideSignal = (x <= 64) * 0xFF;
 
 		// Secondary OAM clear
 		if (x < 64)
@@ -500,11 +511,14 @@ void PPU::EvaluateSprites()
 
 				// Find free slot
 				secondaryOAM[freeSecondaryOAMSlot] = spriteYCoord;
+				Word diff = y - spriteYCoord;
+				if (diff == 0x6)
+					volatile int dkjhfdjf = 32;
 				if (y - spriteYCoord < 8 + ppuctrl.Flag.SpriteSize * 8)	// Choose between 8x8 and 8x16 mode
 				{
-					secondaryOAM[freeSecondaryOAMSlot + 1] = ReadOAM(4 * n + 1);
-					secondaryOAM[freeSecondaryOAMSlot + 2] = ReadOAM(4 * n + 2);
-					secondaryOAM[freeSecondaryOAMSlot + 3] = ReadOAM(4 * n + 3);
+					secondaryOAM[freeSecondaryOAMSlot + 1] = ReadOAM(oamaddr + 4 * n + 1);
+					secondaryOAM[freeSecondaryOAMSlot + 2] = ReadOAM(oamaddr + 4 * n + 2);
+					secondaryOAM[freeSecondaryOAMSlot + 3] = ReadOAM(oamaddr + 4 * n + 3);
 
 					freeSecondaryOAMSlot += 4;
 				}
@@ -552,21 +566,24 @@ void PPU::EvaluateSprites()
 
 			case FetchingPhase::PatternTableLo:
 			{
-				Byte spriteFineY = y - secondaryOAM[4 * currentlyEvaluatedSprite];
-				Byte tileNumber = secondaryOAM[4 * currentlyEvaluatedSprite + 1] + (spriteFineY >> 3);
+				Word spriteFineY = y - secondaryOAM[4 * currentlyEvaluatedSprite];
+				Word tileNumber = secondaryOAM[4 * currentlyEvaluatedSprite + 1] + (spriteFineY >> 3);
 
-				sprites[currentlyEvaluatedSprite].Lo = Read(((Word)ppuctrl.Flag.SpritePatternTableAddr << 12) | (tileNumber << 4) + spriteFineY);
+				sprites[currentlyEvaluatedSprite].Lo = Read((((Word)ppuctrl.Flag.SpritePatternTableAddr << 12) | (tileNumber << 4)) + spriteFineY);
 
 				fetchPhase = FetchingPhase::PatternTableHi;
 			} break;
 
 			case FetchingPhase::PatternTableHi:
 			{
-				Byte spriteFineY = y - secondaryOAM[4 * currentlyEvaluatedSprite];
+				Word spriteFineY = y - secondaryOAM[4 * currentlyEvaluatedSprite];
 				Byte tileNumber = secondaryOAM[4 * currentlyEvaluatedSprite + 1] + (spriteFineY >> 3);
 
-				sprites[currentlyEvaluatedSprite].Hi = Read(((Word)ppuctrl.Flag.SpritePatternTableAddr << 12) | (tileNumber << 4) + 8 + spriteFineY);
+				sprites[currentlyEvaluatedSprite].Hi = Read((((Word)ppuctrl.Flag.SpritePatternTableAddr << 12) | (tileNumber << 4)) + 8 + spriteFineY);
 				
+				if (sprites[currentlyEvaluatedSprite].Hi != 0x00 && sprites[currentlyEvaluatedSprite].Counter == 0x88)
+					volatile int dkjf = 3;
+
 				if (currentlyEvaluatedSprite * 4 >= freeSecondaryOAMSlot)
 				{
 					sprites[currentlyEvaluatedSprite].Lo = 0x00;
@@ -639,7 +656,7 @@ Pixel PPU::GetSpritePixel()
 			continue;
 		
 		// If sprite is active, determine the current pixel
-		Byte loBit = (sprite.Hi & 0x80) >> 7;
+		Byte loBit = (sprite.Lo & 0x80) >> 7;
 		Byte hiBit = (sprite.Hi & 0x80) >> 7;
 
 		uint8_t color = (hiBit << 1) | loBit;
@@ -652,6 +669,9 @@ Pixel PPU::GetSpritePixel()
 		uint8_t palette = 4 + (sprite.Latch & 0x3);
 		if (color == 0x00)
 			palette = 0x00;
+
+		sprite.Lo <<= 1;
+		sprite.Hi <<= 1;
 
 		returnValue.color = color;
 		returnValue.palette = palette;
