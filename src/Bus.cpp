@@ -16,7 +16,7 @@ Bus::Bus(Screen* screen) :
 	palettes = std::vector<Byte>(0x20, 0);
 
 	LOG_CORE_INFO("Inserting cartridge");
-	cartridge.Load("roms/donkeykong.nes");
+	cartridge.Load("roms/mario.nes");
 
 	LOG_CORE_INFO("Powering up CPU");
 	cpu.Powerup();

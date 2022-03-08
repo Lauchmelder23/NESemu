@@ -518,7 +518,7 @@ void PPU::EvaluateSprites()
 					secondaryOAM[freeSecondaryOAMSlot + 2] = ReadOAM(oamaddr + 4 * n + 2);
 					secondaryOAM[freeSecondaryOAMSlot + 3] = ReadOAM(oamaddr + 4 * n + 3);
 
-					sprites[freeSecondaryOAMSlot >> 2].OAMPosition = n >> 4;
+					sprites[freeSecondaryOAMSlot >> 2].OAMPosition = n >> 2;
 
 					freeSecondaryOAMSlot += 4;
 				}

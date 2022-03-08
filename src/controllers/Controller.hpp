@@ -25,10 +25,10 @@ public:
 
 	inline Byte CLK()
 	{
-		Byte output = outRegister & 1;
-		outRegister >>= 1;
+		Byte output = (outRegister & 0x80) >> 7;
+		outRegister <<= 1;
 
-		return (output << outPin);
+		return 0x40 | (output << outPin);
 	}
 
 protected:
