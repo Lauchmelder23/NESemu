@@ -16,7 +16,7 @@ Bus::Bus(Screen* screen) :
 	palettes = std::vector<Byte>(0x20, 0);
 
 	LOG_CORE_INFO("Inserting cartridge");
-	cartridge.Load("roms/mario.nes");
+	cartridge.Load("roms/donkeykong.nes");
 
 	LOG_CORE_INFO("Powering up CPU");
 	cpu.Powerup();
@@ -82,7 +82,7 @@ void Bus::DMATick()
 
 	if (DMALatch != 0)
 	{
-		Byte data = ReadCPU(((Word)DMAPage << 8) | (0xFF - DMACyclesLeft));
+		Byte data = ReadCPU(((Word)DMAPage << 8) | (0x100 - DMACyclesLeft));
 		ppu.WriteRegister(0x2004, data);
 
 		DMACyclesLeft--;
@@ -214,7 +214,7 @@ void Bus::WriteCPU(Word addr, Byte val)
 		{
 		case 0x4014:
 			DMAPage = val;
-			DMACyclesLeft = 0xFF;
+			DMACyclesLeft = 0x100;
 			preDMACycles = 1 + (cpu.GetTotalCycles() % 2);
 			return;
 

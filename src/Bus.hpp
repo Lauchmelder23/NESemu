@@ -98,7 +98,7 @@ private:
 	ControllerPort controllerPort;
 
 	Byte preDMACycles = 0;
-	Byte DMACyclesLeft = 0;
+	Word DMACyclesLeft = 0;
 	Byte DMAPage = 0;
 	Byte DMALatch = 0;
 

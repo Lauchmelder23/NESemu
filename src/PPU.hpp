@@ -57,8 +57,21 @@ union ShiftRegister
 
 struct Sprite
 {
+	Byte OAMPosition;
 	Byte Lo, Hi;
-	Byte Latch;
+	union
+	{
+		struct
+		{
+			Byte Palette : 2;
+			Byte Unimplemented : 3;
+			Byte Priority : 1;
+			Byte FlipHorizontally : 1;
+			Byte FlipVertically : 1;
+		};
+
+		Byte Raw;
+	} Latch;
 	Byte Counter;
 	Byte FineX;
 };
