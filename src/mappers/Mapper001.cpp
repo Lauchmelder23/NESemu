@@ -108,8 +108,8 @@ bool Mapper001::MapCIRAM(Word& addr)
 {
 	if ((control & 0x3) < 2)
 	{
-		LOG_CORE_WARN("Mapper MMC1 doesn't yet support One-Screen mirroring");
-		return true;
+		addr = 0x2000 + (control & 0x3) * 0x400;
+		return false;
 	}
 
 	if ((control & 0x3) == 0x3)
