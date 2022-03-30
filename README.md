@@ -6,7 +6,7 @@ This time I'm also writing a Debugger that will hopefully help me finish the pro
 
 ![View of the Debugger](imgs/debug_example.png)
 
-Also I'm writing it in C++ this time because jesus christ i hate C. My previous attempt is [here](https://github.com/Lauchmelder23/NESEmulator).
+Also I'm writing it in C++ this time, My previous attempt is [here](https://github.com/Lauchmelder23/NESEmulator).
 
 ## Libraries
 * [spdlog](https://github.com/gabime/spdlog) for logging
