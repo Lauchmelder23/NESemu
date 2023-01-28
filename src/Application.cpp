@@ -109,8 +109,7 @@ Application::~Application()
 
 bool Application::Update()
 {
-	if (window->GetScale() != scale)
-		window->SetScale(scale);
+	window->SetScale(scale);
 
 	glfwPollEvents();
 

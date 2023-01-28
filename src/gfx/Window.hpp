@@ -12,7 +12,6 @@ public:
 	Window(uint16_t width, uint16_t height, const std::string& title);
 	~Window();
 
-	inline int GetScale() { return scale; }
 	inline bool ShouldClose() { return glfwWindowShouldClose(handle); }
 	inline GLFWwindow* GetNativeWindow() { return handle; }
 	
@@ -22,6 +21,5 @@ public:
 	void End();
 
 private:
-	int scale = -1;
 	GLFWwindow* handle;
 };
