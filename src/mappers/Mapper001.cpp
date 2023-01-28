@@ -99,9 +99,8 @@ void Mapper001::WriteCPU(Word addr, Byte val)
 	}
 }
 
-void Mapper001::WritePPU(Word addr, Byte val)
+void Mapper001::WritePPU(Word, Byte)
 {
-	
 }
 
 bool Mapper001::MapCIRAM(Word& addr)

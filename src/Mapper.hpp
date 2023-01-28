@@ -39,8 +39,8 @@ public:
 		return false;
 	}
 
-	virtual Byte ReadVRAM(Word addr) { return 0x00; }
-	virtual void WriteVRAM(Word addr, Byte val) {}
+	virtual Byte ReadVRAM(Word) { return 0x00; }
+	virtual void WriteVRAM(Word, Byte) {}
 
 protected:
 	Mapper(const Header& header) : header(header), prgBanks(header.PrgROM), chrBanks(header.ChrROM)

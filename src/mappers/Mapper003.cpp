@@ -43,6 +43,6 @@ void Mapper003::WriteCPU(Word addr, Byte val)
 	}
 }
 
-void Mapper003::WritePPU(Word addr, Byte val)
+void Mapper003::WritePPU(Word, Byte)
 {
 }

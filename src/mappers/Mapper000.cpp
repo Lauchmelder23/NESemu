@@ -36,10 +36,10 @@ Byte Mapper000::ReadPPU(Word addr)
 	return 0x00;
 }
 
-void Mapper000::WriteCPU(Word addr, Byte val)
+void Mapper000::WriteCPU(Word, Byte)
 {
 }
 
-void Mapper000::WritePPU(Word addr, Byte val)
+void Mapper000::WritePPU(Word, Byte)
 {
 }
