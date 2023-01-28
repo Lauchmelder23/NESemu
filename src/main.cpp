@@ -1,7 +1,7 @@
 #include "Application.hpp"
 #include "Log.hpp"
 
-int main(int argc, char** argv)
+int main()
 {
 	Log::Init();
 	Application::Launch();
