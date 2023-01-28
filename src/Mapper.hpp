@@ -10,6 +10,8 @@ class Mapper
 	friend class PatternTableViewer;
 
 public:
+	virtual ~Mapper() {}
+
 	virtual Byte ReadCPU(Word addr) = 0;
 	virtual Byte ReadPPU(Word addr) = 0;
 	virtual void WriteCPU(Word addr, Byte val) = 0;
