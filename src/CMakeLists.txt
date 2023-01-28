@@ -33,6 +33,12 @@ target_link_libraries(nesemu
 	${CMAKE_DL_LIBS}
 )
 
+if (WIN32) 
+	target_compile_options(nesemu PRIVATE "/W4" "/WX")
+else()
+	target_compile_options(nesemu PRIVATE "-Wall" "-Werror")
+endif()
+
 add_custom_command(TARGET nesemu POST_BUILD
 	COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/roms $<TARGET_FILE_DIR:nesemu>/roms
 )
