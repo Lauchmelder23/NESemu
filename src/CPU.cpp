@@ -52,7 +52,7 @@ uint8_t CPU::Tick()
 	currentInstruction = &(InstructionTable[opcode]);
 
 	// Add this instruction to the past instruction list
-	pastInstructions.push_back(std::make_pair(pc.Raw - 1, currentInstruction));
+	pastInstructions.push_back(std::make_pair((Word)(pc.Raw - 1), currentInstruction));
 	if (pastInstructions.size() > 50)
 		pastInstructions.pop_front();
 
@@ -1081,7 +1081,7 @@ void CPU::SBX()
 	CHECK_ZERO(result);
 	status.Flag.Carry = ((acc & idx) >= fetchedVal);
 
-	idx = result;
+	idx = (Byte)(result & 0xFF);
 }
 
 void CPU::SBC()

@@ -56,7 +56,7 @@ uint8_t Bus::Tick()
 	else
 	{
 		DMATick();
-		result = DMACyclesLeft;
+		result = (uint8_t)DMACyclesLeft;
 	}
 
 
@@ -83,7 +83,7 @@ void Bus::DMATick()
 	if (DMALatch != 0)
 	{
 		Byte data = ReadCPU(((Word)DMAPage << 8) | (0x100 - DMACyclesLeft));
-		ppu.WriteRegister(0x2004, data);
+		ppu.WriteRegister(0x04, data);
 
 		DMACyclesLeft--;
 	}
@@ -196,8 +196,6 @@ void Bus::WriteCPU(Word addr, Byte val)
 {
 	if (0x0000 <= addr && addr < 0x2000)
 	{
-		if (addr == 0x0348)
-			volatile int jdfkdf = 3;
 		RAM[addr & 0x7FF] = val;
 	}
 	else if (0x2000 <= addr && addr < 0x4000)

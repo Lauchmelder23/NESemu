@@ -45,7 +45,7 @@ union StatusFlag
 		Byte Negative : 1;
 	} Flag;
 
-	Word Raw;
+	Byte Raw;
 };
 
 /**
