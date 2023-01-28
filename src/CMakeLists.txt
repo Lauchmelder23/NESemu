@@ -34,7 +34,7 @@ target_link_libraries(nesemu
 )
 
 if (WIN32) 
-	target_compile_options(nesemu PRIVATE "/W4" "/WX")
+	target_compile_options(nesemu PRIVATE "/W4" "/WX" "/wd4996")
 else()
 	target_compile_options(nesemu PRIVATE "-Wall" "-Werror")
 endif()

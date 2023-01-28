@@ -87,7 +87,7 @@ void NametableViewer::OnRender()
 		if (smallerSize < 40.0f)
 			smallerSize = 40.0f;
 
-		ImGui::Image((ImTextureID)texture, ImVec2{smallerSize, smallerSize - 20.0f});
+		ImGui::Image(reinterpret_cast<ImTextureID>((uint64_t)texture), ImVec2{smallerSize, smallerSize - 20.0f});
 		ImGui::End();
 	}
 
@@ -104,7 +104,7 @@ void NametableViewer::OnRender()
 		if (smallerSize < 40.0f)
 			smallerSize = 40.0f;
 
-		ImGui::Image((ImTextureID)attributeTexture, ImVec2{ smallerSize, smallerSize - 20.0f });
+		ImGui::Image(reinterpret_cast<ImTextureID>((uint64_t)attributeTexture), ImVec2{ smallerSize, smallerSize - 20.0f });
 		ImGui::End();
 	}
 

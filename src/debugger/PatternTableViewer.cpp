@@ -42,13 +42,13 @@ void PatternTableViewer::OnRender()
 	{
 		if (ImGui::BeginTabItem("Table 1"))
 		{
-			ImGui::Image((ImTextureID)texture, ImVec2(smallerSize, smallerSize - 40.0f), ImVec2(0.0f, 0.0f), ImVec2(0.5f, 1.0f));
+			ImGui::Image(reinterpret_cast<ImTextureID>((uint64_t)texture), ImVec2(smallerSize, smallerSize - 40.0f), ImVec2(0.0f, 0.0f), ImVec2(0.5f, 1.0f));
 			ImGui::EndTabItem();
 		}
 
 		if (ImGui::BeginTabItem("Table 2"))
 		{
-			ImGui::Image((ImTextureID)texture, ImVec2(smallerSize, smallerSize - 40.0f), ImVec2(0.5f, 0.0f), ImVec2(1.0f, 1.0f));
+			ImGui::Image(reinterpret_cast<ImTextureID>((uint64_t)texture), ImVec2(smallerSize, smallerSize - 40.0f), ImVec2(0.5f, 0.0f), ImVec2(1.0f, 1.0f));
 			ImGui::EndTabItem();
 		}
 
@@ -62,13 +62,13 @@ void PatternTableViewer::OnRender()
 void PatternTableViewer::DecodePatternTable(int index, std::vector<Color>& buffer)
 {
 	// uint8_t stride = 128;
-	Word baseAddr = 0x1000 * index;
+	Word baseAddr = (Word)(0x1000 * index);
 	if (baseAddr >= mapper->CHR_ROM.size())
 		return;
 
-	for (int y = 0; y < 16; y++)
+	for (uint8_t y = 0; y < 16; y++)
 	{
-		for (int x = 0; x < 16; x++)
+		for (uint8_t x = 0; x < 16; x++)
 		{
 			Word tileAddress = baseAddr + (16 * 16 * y) + (16 * x);
 			

@@ -106,7 +106,7 @@ void Disassembler::Disassemble(std::string& target, uint16_t pc, const Instructi
 	std::stringstream ss;
 	ss << FORMAT << pc << ": ";
 
-	for (int i = 0; i < instr->Size; i++)
+	for (uint8_t i = 0; i < instr->Size; i++)
 	{
 		ss << FORMAT << std::setw(2) << (Word)cpu->Read(pc + i) << " ";
 	}

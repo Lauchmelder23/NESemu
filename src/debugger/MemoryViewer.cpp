@@ -22,9 +22,9 @@ void MemoryViewer::OnRender()
 
 	for (Byte page = 0; page < 8; page++)
 	{
-		char title[7];
-		std::sprintf(title, "Page %d", page);
-		if (ImGui::BeginTabItem(title))
+		char tab_title[7];
+		std::sprintf(tab_title, "Page %d", page);
+		if (ImGui::BeginTabItem(tab_title))
 		{
 			DrawPage(page);
 			ImGui::EndTabItem();

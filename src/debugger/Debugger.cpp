@@ -60,6 +60,8 @@ bool Debugger::Frame()
 		bus->cpu.Halt();
 		return true;
 	}
+
+	return false;
 }
 
 bool Debugger::Update()

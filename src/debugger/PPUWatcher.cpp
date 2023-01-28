@@ -56,10 +56,10 @@ void PPUWatcher::OnRender()
 		ImGui::Text("Current VRAM Address (v)  : %02X ($%04X)", ppu->current.Raw, 0x2000 | (ppu->current.Raw & 0x0FFF));
 		if (ImGui::TreeNode("Breakdown (v)"))
 		{
-			ImGui::Text("Coarse X : %02X", ppu->current.CoarseX);
-			ImGui::Text("Coarse Y : %02X", ppu->current.CoarseY);
-			ImGui::Text("Nametable: %02X", ppu->current.NametableSel);
-			ImGui::Text("Fine Y   : %02X", ppu->current.FineY);
+			ImGui::Text("Coarse X : %02X", ppu->current.Data.CoarseX);
+			ImGui::Text("Coarse Y : %02X", ppu->current.Data.CoarseY);
+			ImGui::Text("Nametable: %02X", ppu->current.Data.NametableSel);
+			ImGui::Text("Fine Y   : %02X", ppu->current.Data.FineY);
 
 			ImGui::TreePop();
 		}
@@ -67,10 +67,10 @@ void PPUWatcher::OnRender()
 		ImGui::Text("Temporary VRAM Address (t): %02X ($%04X)", ppu->temporary.Raw, 0x2000 | (ppu->current.Raw & 0x0FFF));
 		if (ImGui::TreeNode("Breakdown (t)"))
 		{
-			ImGui::Text("Coarse X : %02X", ppu->temporary.CoarseX);
-			ImGui::Text("Coarse Y : %02X", ppu->temporary.CoarseY);
-			ImGui::Text("Nametable: %02X", ppu->temporary.NametableSel);
-			ImGui::Text("Fine Y   : %02X", ppu->temporary.FineY);
+			ImGui::Text("Coarse X : %02X", ppu->temporary.Data.CoarseX);
+			ImGui::Text("Coarse Y : %02X", ppu->temporary.Data.CoarseY);
+			ImGui::Text("Nametable: %02X", ppu->temporary.Data.NametableSel);
+			ImGui::Text("Fine Y   : %02X", ppu->temporary.Data.FineY);
 
 			ImGui::TreePop();
 		}

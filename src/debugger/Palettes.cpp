@@ -56,7 +56,7 @@ void Palettes::OnRender()
 		glTextureSubImage2D(backgroundPalettes, 0, 0, 0, 4, 4, GL_RGB, GL_UNSIGNED_BYTE, (const void*)palette);
 
 		for(float i = 0; i < 1.0f; i += 0.25f)
-			ImGui::Image((ImTextureID)backgroundPalettes, size, ImVec2(0, i), ImVec2(1, i + 0.25f));
+			ImGui::Image(reinterpret_cast<ImTextureID>((uint64_t)backgroundPalettes), size, ImVec2(0, i), ImVec2(1, i + 0.25f));
 	}
 
 	if (ImGui::CollapsingHeader("Sprites"))
@@ -72,7 +72,7 @@ void Palettes::OnRender()
 		glTextureSubImage2D(spritePalettes, 0, 0, 0, 4, 4, GL_RGB, GL_UNSIGNED_BYTE, (const void*)palette);
 
 		for (float i = 0; i < 1.0f; i += 0.25f)
-			ImGui::Image((ImTextureID)spritePalettes, size, ImVec2(0, i), ImVec2(1, i + 0.25f));
+			ImGui::Image(reinterpret_cast<ImTextureID>((uint64_t)spritePalettes), size, ImVec2(0, i), ImVec2(1, i + 0.25f));
 	}
 
 	ImGui::End();
