@@ -5,7 +5,7 @@
 
 #include "controllers/StandardController.hpp"
 
-Bus::Bus(Screen* screen) :
+Bus::Bus(const char* rom, Screen* screen) :
 	cpu(this), ppu(this, screen), apu(this), cartridge(this)
 {
 	LOG_CORE_INFO("Allocating RAM");
@@ -16,7 +16,7 @@ Bus::Bus(Screen* screen) :
 	palettes = std::vector<Byte>(0x20, 0);
 
 	LOG_CORE_INFO("Inserting cartridge");
-	cartridge.Load("roms/mario.nes");
+	cartridge.Load(rom);
 
 	LOG_CORE_INFO("Powering up CPU");
 	cpu.Powerup();

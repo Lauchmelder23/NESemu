@@ -61,7 +61,7 @@ bool Debugger::Frame()
 		return true;
 	}
 
-	return false;
+	return true;
 }
 
 bool Debugger::Update()

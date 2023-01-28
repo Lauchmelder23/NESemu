@@ -25,7 +25,7 @@ class Bus
 	friend class Palettes;
 
 public:
-	Bus(Screen* screen);
+	Bus(const char* rom, Screen* screen);
 
 	/**
 	 * @brief Reboot the NES.

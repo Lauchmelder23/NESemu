@@ -14,14 +14,14 @@
 #include "Debugger.hpp"
 #include "gfx/Window.hpp"
 
-void Application::Launch()
+void Application::Launch(const char* rom)
 {
 	glfwInit();
 
 	Application* app = nullptr;
 	try
 	{
-		app = new Application;
+		app = new Application(rom);
 	}
 	catch (const std::runtime_error& err)
 	{
@@ -43,7 +43,7 @@ void Application::Launch()
 	glfwTerminate();
 }
 
-Application::Application() :
+Application::Application(const char* rom) :
 	bus(nullptr), window(nullptr)
 {
 	LOG_CORE_INFO("Creating window");
@@ -93,7 +93,7 @@ Application::Application() :
 		throw err;
 	}
 
-	bus = new Bus(screen);
+	bus = new Bus(rom, screen);
 	debugger = new Debugger(bus);
 }
 

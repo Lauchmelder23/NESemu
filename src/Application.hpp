@@ -14,10 +14,10 @@ public:
 	/**
 	 * @brief Create and launch a new application.
 	 */
-	static void Launch();
+	static void Launch(const char* rom);
 
 private:
-	Application();
+	Application(const char* rom);
 	~Application();
 
 	/**
