@@ -18,10 +18,9 @@ ControllerPort::~ControllerPort()
 	}
 }
 
-Byte ControllerPort::Write(Word addr, Byte val)
+void ControllerPort::Write(Byte val)
 {
 	latch.Raw = val;
-	return 0x00;
 }
 
 Byte ControllerPort::Read(Word addr)

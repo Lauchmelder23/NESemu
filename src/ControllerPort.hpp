@@ -15,7 +15,7 @@ public:
 	ControllerPort();
 	~ControllerPort();
 
-	Byte Write(Word addr, Byte val);
+	void Write(Byte val);
 	Byte Read(Word addr);
 
 	void Tick();

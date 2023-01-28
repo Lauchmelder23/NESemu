@@ -19,7 +19,8 @@ class Controller
 	friend class ControllerPortViewer;
 
 public:
-	Controller(int outPin) : outPin(outPin) {}
+	Controller(Byte outPin) : outPin(outPin) {}
+	virtual ~Controller() {}
 
 	virtual void OUT(PortLatch latch) = 0;
 

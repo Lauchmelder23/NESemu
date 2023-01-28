@@ -219,7 +219,7 @@ void Bus::WriteCPU(Word addr, Byte val)
 			return;
 
 		case 0x4016:
-			controllerPort.Write(addr, val);
+			controllerPort.Write(val);
 			break;
 
 		case 0x4017:
