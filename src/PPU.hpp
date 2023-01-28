@@ -39,7 +39,7 @@ union VRAMAddress
 		Word CoarseY : 5;
 		Word NametableSel : 2;
 		Word FineY : 3;
-	};
+	} Data;
 
 	Word Raw;
 };
@@ -50,7 +50,7 @@ union ShiftRegister
 	{
 		Byte Lo;
 		Byte Hi;
-	};
+	} Bytes;
 
 	Word Raw;
 };
@@ -68,7 +68,7 @@ struct Sprite
 			Byte Priority : 1;
 			Byte FlipHorizontally : 1;
 			Byte FlipVertically : 1;
-		};
+		} Data;
 
 		Byte Raw;
 	} Latch;

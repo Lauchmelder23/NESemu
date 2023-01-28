@@ -170,38 +170,38 @@ void PPU::Tick()
 
 		if (x == 257)
 		{
-			current.CoarseX = temporary.CoarseX;
-			current.NametableSel &= 0x2;
-			current.NametableSel |= temporary.NametableSel & 0x1;
+			current.Data.CoarseX = temporary.Data.CoarseX;
+			current.Data.NametableSel &= 0x2;
+			current.Data.NametableSel |= temporary.Data.NametableSel & 0x1;
 		}
 
 		if (scanlineType == ScanlineType::PreRender && ppumask.Flag.ShowBackground && x >= 280 && x <= 304)
 		{
-			current.FineY = temporary.FineY;
-			current.CoarseY = temporary.CoarseY;
-			current.NametableSel &= 0x1;
-			current.NametableSel |= temporary.NametableSel & 0x2;
+			current.Data.FineY = temporary.Data.FineY;
+			current.Data.CoarseY = temporary.Data.CoarseY;
+			current.Data.NametableSel &= 0x1;
+			current.Data.NametableSel |= temporary.Data.NametableSel & 0x2;
 		}
 
 	}
 	
 	if (x == 256)
 	{
-		current.FineY++;
-		if (current.FineY == 0)
+		current.Data.FineY++;
+		if (current.Data.FineY == 0)
 		{
-			if (current.CoarseY == 29)
+			if (current.Data.CoarseY == 29)
 			{
-				current.CoarseY = 0;
-				current.NametableSel ^= 0x2;
+				current.Data.CoarseY = 0;
+				current.Data.NametableSel ^= 0x2;
 			}
-			else if (current.CoarseY == 31)
+			else if (current.Data.CoarseY == 31)
 			{
-				current.CoarseY = 0;
+				current.Data.CoarseY = 0;
 			}
 			else
 			{
-				current.CoarseY++;
+				current.Data.CoarseY++;
 			}
 		}
 	}
@@ -276,7 +276,7 @@ void PPU::WriteRegister(Byte id, Byte val)
 	{
 	case 0:
 		ppuctrl.Raw = val;
-		temporary.NametableSel = ppuctrl.Flag.BaseNametableAddr;
+		temporary.Data.NametableSel = ppuctrl.Flag.BaseNametableAddr;
 		break;
 
 	case 1:
@@ -302,14 +302,14 @@ void PPU::WriteRegister(Byte id, Byte val)
 		if (addressLatch == 0)
 		{
 			ppuscroll.x = val;
-			temporary.CoarseX = (val >> 3);
+			temporary.Data.CoarseX = (val >> 3);
 			fineX = val & 0x7;
 		}
 		else
 		{
 			ppuscroll.y = val;
-			temporary.CoarseY = (val >> 3);
-			temporary.FineY = val & 0x3;
+			temporary.Data.CoarseY = (val >> 3);
+			temporary.Data.FineY = val & 0x3;
 		}
 
 		addressLatch = !addressLatch;
@@ -321,7 +321,7 @@ void PPU::WriteRegister(Byte id, Byte val)
 			ppuaddr.Bytes.hi = val;
 			temporary.Raw &= 0xFF;
 			temporary.Raw |= ((Word)(val & 0x3F) << 8);
-			temporary.FineY &= 0x3;
+			temporary.Data.FineY &= 0x3;
 		}
 		else
 		{
@@ -435,36 +435,36 @@ void PPU::EvaluateBackgroundTiles()
 			break;
 
 		case FetchingPhase::AttributeTableByte:
-			attributeTableByte = Read(0x23C0 | (current.Raw & 0x0C00) | ((current.CoarseY >> 2) << 3) | (current.CoarseX >> 2));
+			attributeTableByte = Read(0x23C0 | (current.Raw & 0x0C00) | ((current.Data.CoarseY >> 2) << 3) | (current.Data.CoarseX >> 2));
 			fetchPhase = FetchingPhase::PatternTableLo;
 			break;
 
 		case FetchingPhase::PatternTableLo:
-			patternTableLo = Read(((Word)ppuctrl.Flag.BackgrPatternTableAddr << 12) | ((Word)nametableByte << 4) + current.FineY);
+			patternTableLo = Read(((Word)ppuctrl.Flag.BackgrPatternTableAddr << 12) | ((Word)nametableByte << 4) + current.Data.FineY);
 			fetchPhase = FetchingPhase::PatternTableHi;
 			break;
 
 		case FetchingPhase::PatternTableHi:
-			patternTableHi = Read((((Word)ppuctrl.Flag.BackgrPatternTableAddr << 12) | ((Word)nametableByte << 4)) + 8 + current.FineY);
+			patternTableHi = Read((((Word)ppuctrl.Flag.BackgrPatternTableAddr << 12) | ((Word)nametableByte << 4)) + 8 + current.Data.FineY);
 
-			loTile.Lo = patternTableLo;
-			hiTile.Lo = patternTableHi;
+			loTile.Bytes.Lo = patternTableLo;
+			hiTile.Bytes.Lo = patternTableHi;
 
 			Byte attributeHalfNybble = attributeTableByte;
-			attributeHalfNybble >>= (((current.CoarseX >> 1) % 2) ? 2 : 0);
-			attributeHalfNybble >>= (((current.CoarseY >> 1) % 2) ? 4 : 0);
+			attributeHalfNybble >>= (((current.Data.CoarseX >> 1) % 2) ? 2 : 0);
+			attributeHalfNybble >>= (((current.Data.CoarseY >> 1) % 2) ? 4 : 0);
 
-			loAttribute.Lo = ((attributeHalfNybble & 1) ? 0xFF : 0x00);
-			hiAttribute.Lo = ((attributeHalfNybble & 2) ? 0xFF : 0x00);
+			loAttribute.Bytes.Lo = ((attributeHalfNybble & 1) ? 0xFF : 0x00);
+			hiAttribute.Bytes.Lo = ((attributeHalfNybble & 2) ? 0xFF : 0x00);
 
-			if (current.CoarseX == 0x1F)
+			if (current.Data.CoarseX == 0x1F)
 			{
-				current.NametableSel ^= 0x1;
-				current.CoarseX = 0x00;
+				current.Data.NametableSel ^= 0x1;
+				current.Data.CoarseX = 0x00;
 			}
 			else
 			{
-				current.CoarseX++;
+				current.Data.CoarseX++;
 			}
 
 			fetchPhase = FetchingPhase::NametableByte;
@@ -552,15 +552,13 @@ void PPU::EvaluateSprites()
 			case FetchingPhase::NametableByte:	// Fetch garbage
 				nametableByte = Read(0x2000 | (current.Raw & 0x0FFF));
 				sprites[currentlyEvaluatedSprite].Counter = secondaryOAM[4 * currentlyEvaluatedSprite + 3];
-				if (sprites[currentlyEvaluatedSprite].Counter == 0x00)
-					volatile int djf = 3;
 				sprites[currentlyEvaluatedSprite].FineX = 0;
 
 				fetchPhase = FetchingPhase::AttributeTableByte;
 				break;
 
 			case FetchingPhase::AttributeTableByte:	// Fetch garbage
-				attributeTableByte = Read(0x23C0 | (current.Raw & 0x0C00) | ((current.CoarseY >> 2) << 3) | (current.CoarseX >> 2));
+				attributeTableByte = Read(0x23C0 | (current.Raw & 0x0C00) | ((current.Data.CoarseY >> 2) << 3) | (current.Data.CoarseX >> 2));
 				sprites[currentlyEvaluatedSprite].Latch.Raw = secondaryOAM[4 * currentlyEvaluatedSprite + 2];
 
 				fetchPhase = FetchingPhase::PatternTableLo;
@@ -569,7 +567,7 @@ void PPU::EvaluateSprites()
 			case FetchingPhase::PatternTableLo:
 			{
 				Word spriteFineY = y - secondaryOAM[4 * currentlyEvaluatedSprite];
-				if (sprites[currentlyEvaluatedSprite].Latch.FlipVertically)
+				if (sprites[currentlyEvaluatedSprite].Latch.Data.FlipVertically)
 					spriteFineY = 7 - spriteFineY;
 
 				Word tileNumber = secondaryOAM[4 * currentlyEvaluatedSprite + 1] + (spriteFineY >> 3);
@@ -582,10 +580,10 @@ void PPU::EvaluateSprites()
 			case FetchingPhase::PatternTableHi:
 			{
 				Word spriteFineY = y - secondaryOAM[4 * currentlyEvaluatedSprite];
-				if (sprites[currentlyEvaluatedSprite].Latch.FlipVertically)
+				if (sprites[currentlyEvaluatedSprite].Latch.Data.FlipVertically)
 					spriteFineY = 7 - spriteFineY;
 
-				Byte tileNumber = secondaryOAM[4 * currentlyEvaluatedSprite + 1] + (spriteFineY >> 3);
+				Byte tileNumber = secondaryOAM[4 * currentlyEvaluatedSprite + 1] + Byte((spriteFineY >> 3) & 0xFF);
 
 				sprites[currentlyEvaluatedSprite].Hi = Read((((Word)ppuctrl.Flag.SpritePatternTableAddr << 12) | (tileNumber << 4)) + 8 + spriteFineY);
 
@@ -615,12 +613,12 @@ Pixel PPU::GetBackgroundPixel()
 	if (!ppumask.Flag.ShowBackground)
 		return returnValue;
 
-	Byte shiftAmount = 7 - fineX;
+	Byte shiftAmount = (Byte)(7 - fineX);
 
-	Byte loBit = (loTile.Hi >> shiftAmount) & 0x1;
-	Byte hiBit = (hiTile.Hi >> shiftAmount) & 0x1;
-	Byte loAttrBit = (loAttribute.Hi >> shiftAmount) & 0x1;
-	Byte hiAttrBit = (hiAttribute.Hi >> shiftAmount) & 0x1;;
+	Byte loBit = (loTile.Bytes.Hi >> shiftAmount) & 0x1;
+	Byte hiBit = (hiTile.Bytes.Hi >> shiftAmount) & 0x1;
+	Byte loAttrBit = (loAttribute.Bytes.Hi >> shiftAmount) & 0x1;
+	Byte hiAttrBit = (hiAttribute.Bytes.Hi >> shiftAmount) & 0x1;;
 
 	returnValue.color = (hiBit << 1) | loBit;
 	returnValue.palette = (hiAttrBit << 1) | loAttrBit;
@@ -650,7 +648,7 @@ Pixel PPU::GetSpritePixel()
 
 		Byte mask = 0x00;
 
-		if (sprite.Latch.FlipHorizontally)
+		if (sprite.Latch.Data.FlipHorizontally)
 			mask = 0x1 << sprite.FineX;
 		else
 			mask = 0x80 >> sprite.FineX;
@@ -662,16 +660,13 @@ Pixel PPU::GetSpritePixel()
 		if (color == 0x00)
 			continue;
 
-		uint8_t palette = 4 + sprite.Latch.Palette;
+		uint8_t palette = 4 + sprite.Latch.Data.Palette;
 		if (color == 0x00)
 			palette = 0x00;
 
-		if (x < 5)
-			volatile int djfk = 3;
-
 		returnValue.color = color;
 		returnValue.palette = palette;
-		returnValue.priority = sprite.Latch.Priority;
+		returnValue.priority = sprite.Latch.Data.Priority;
 		returnValue.isZeroSprite = (sprite.OAMPosition == 0x00);
 
 		break;
