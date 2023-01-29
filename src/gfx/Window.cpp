@@ -21,7 +21,7 @@ Window::Window(uint16_t width, uint16_t height, const std::string& title) :
 	}
 
 	glfwMakeContextCurrent(handle);
-	glfwSwapInterval(1);
+	glfwSwapInterval(0);
 	Input::SetWindow(this);
 }
 
