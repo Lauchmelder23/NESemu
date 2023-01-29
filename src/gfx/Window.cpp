@@ -11,6 +11,7 @@ Window::Window(uint16_t width, uint16_t height, const std::string& title) :
 	handle(nullptr)
 {
 	glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
+
 	handle = glfwCreateWindow(width, height, title.c_str(), nullptr, nullptr);
 	if (handle == nullptr)
 	{
@@ -20,6 +21,7 @@ Window::Window(uint16_t width, uint16_t height, const std::string& title) :
 	}
 
 	glfwMakeContextCurrent(handle);
+	glfwSwapInterval(1);
 	Input::SetWindow(this);
 }
 

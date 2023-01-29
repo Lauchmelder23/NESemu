@@ -161,6 +161,10 @@ void Debugger::Render()
 		ImGui::InputScalar("Reset Vector", ImGuiDataType_U16, &resetVector, (const void*)0, (const void*)0, "%04X", ImGuiInputTextFlags_CharsHexadecimal);
 	}
 
+	ImGui::Separator();
+
+	ImGui::Text("FPS: %f", ImGui::GetIO().Framerate);
+
 	for (DebugWindow* window : windows)
 	{
 		if (window->isOpen) window->OnRender();

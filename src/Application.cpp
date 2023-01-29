@@ -140,5 +140,13 @@ bool Application::Update()
 	debugger->Render();
 	window->End();
 
+	std::chrono::microseconds frametime = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - lastFrameTime);
+	lastFrameTime = std::chrono::steady_clock::now();
+
+	if (frametime < std::chrono::microseconds(1000000 / 60)) {
+		std::this_thread::sleep_for(std::chrono::microseconds(1000000 / 60) - frametime);
+	}
+
+
 	return !window->ShouldClose();
 }

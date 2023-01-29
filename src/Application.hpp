@@ -1,5 +1,7 @@
 #pragma once
 
+#include <chrono>
+
 class Bus;
 class Window;
 class Debugger;
@@ -33,4 +35,6 @@ private:
 	Bus* bus;
 	Screen* screen;
 	Debugger* debugger;
+
+	std::chrono::steady_clock::time_point lastFrameTime;
 };
