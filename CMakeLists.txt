@@ -5,6 +5,9 @@ cmake_minimum_required (VERSION 3.8)
 
 project ("NES Emulator")
 
+set(CMAKE_CXX_STANDARD_REQUIRED 17)
+set(CMAKE_CXX_STANDARD 17)
+
 find_package(glfw3)
 if(NOT glfw3_FOUND)
 	add_subdirectory("vendor/glfw")

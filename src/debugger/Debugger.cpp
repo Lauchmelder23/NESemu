@@ -14,6 +14,7 @@
 #include "PatternTableViewer.hpp"
 #include "ControllerPortViewer.hpp"
 #include "Palettes.hpp"
+#include "Logger.hpp"
 
 Debugger::Debugger(Bus* bus) :
 	bus(bus)
@@ -32,6 +33,9 @@ Debugger::Debugger(Bus* bus) :
 	windows.push_back(new PatternTableViewer(this, bus->cartridge.GetMapper()));
 	windows.push_back(new ControllerPortViewer(this, &bus->controllerPort));
 	windows.push_back(new Palettes(this, bus));
+
+	Logger::Init(this);
+	windows.push_back(Logger::GetInstance());	
 }
 
 Debugger::~Debugger()
@@ -42,6 +46,7 @@ Debugger::~Debugger()
 
 bool Debugger::Frame()
 {
+	Logger::GetInstance()->Log("Debugger", "Frame!\n");
 	try
 	{
 		while (!bus->ppu.IsFrameDone())

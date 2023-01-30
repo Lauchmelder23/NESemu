@@ -7,13 +7,26 @@ add_executable(nesemu
 	"mappers/Mapper000.cpp" 
 	"Log.cpp" 
 	"PPU.cpp" 
+	"APU.cpp" 
 	"gfx/Window.cpp"
+	"gfx/Input.cpp" 
+	"gfx/Screen.cpp" 
 	"debugger/CPUWatcher.cpp"
 	"debugger/Debugger.cpp" 
 	"debugger/PPUWatcher.cpp" 
 	"debugger/Disassembler.cpp" 
 	"debugger/MemoryViewer.cpp" 
-	"debugger/NametableViewer.cpp"  "ControllerPort.cpp" "controllers/StandardController.cpp" "gfx/Input.cpp" "debugger/ControllerPortViewer.cpp" "gfx/Screen.cpp" "debugger/Palettes.cpp" "APU.cpp" "debugger/PatternTableViewer.cpp" "mappers/Mapper003.cpp" "mappers/Mapper001.cpp" "debugger/OAMViewer.cpp")
+	"debugger/NametableViewer.cpp"
+	"debugger/ControllerPortViewer.cpp" 
+	"debugger/PatternTableViewer.cpp" 
+	"debugger/OAMViewer.cpp"
+	"debugger/Palettes.cpp" 
+	"debugger/Logger.cpp"
+	"ControllerPort.cpp"
+	"controllers/StandardController.cpp"
+	"mappers/Mapper003.cpp" 
+	"mappers/Mapper001.cpp" 
+	)
 
 target_include_directories(nesemu PRIVATE
 	mappers
