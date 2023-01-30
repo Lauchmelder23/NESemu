@@ -4,6 +4,7 @@
 out/
 build/
 *.json
+*.ini
 
 *.nes
 !roms/nestest.nes

@@ -36,7 +36,7 @@ Byte Mapper001::ReadCPU(Word addr)
 			break;
 		}
 
-		return PRG_ROM[addr & (0x4000 * selectedBank - 1)];
+		return PRG_ROM[(addr & (0x4000 * selectedBank - 1)) & 0x7FFF];
 	}
 
 	return 0x00;
